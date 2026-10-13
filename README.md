@@ -6,7 +6,7 @@ Mavi Kalkan projesinin ("Müsilaj yüzeye çıkmadan önce") tarayıcıda çalı
 
 ## Ne gösterir
 
-- **Dört deniz, gerçek değerler:** Marmara (İzmit Körfezi), Karadeniz (Ordu açığı), Ege (İzmir Körfezi) ve Akdeniz (Mersin Körfezi). Her denizin tuzluluğu, aylık yüzey suyu sıcaklığı ve azot düzeyi bilimsel yayınlardan ve ÇŞB izleme raporlarından alındı. Kaynaklar sayfadaki "Denizlerin gerçek değerleri" tablosunda.
+- **Dört deniz, gerçek değerler:** Marmara (İzmit Körfezi), Karadeniz (Trabzon, Ganita sahili), Ege (İzmir Körfezi) ve Akdeniz (Mersin Körfezi). Her denizin tuzluluğu, aylık yüzey suyu sıcaklığı ve azot düzeyi bilimsel yayınlardan ve ÇŞB izleme raporlarından alındı. Kaynaklar sayfadaki "Denizlerin gerçek değerleri" tablosunda.
 - **Canlı devre şeması:** Wokwi devresi (Raspberry Pi Pico, 3 potansiyometre, HC-SR04, röle, servo) simülasyonla birlikte çalışır. Düğmeler sensör değerine göre döner, acil durumda röle ışığı yanar ve servo 90°'ye döner.
 
 - **Karşılaştırmalı deney:** Aynı deniz koşullarında üç kesit yan yana çalışır.

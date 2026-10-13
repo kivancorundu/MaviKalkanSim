@@ -769,22 +769,25 @@
       ],
     },
     karadeniz: {
-      ad: 'Karadeniz', istasyon: { id: '#NODE-KARADENIZ-01', ad: 'Ordu açığı', konum: '41.0500° K, 37.7500° D' },
-      S: 17.5, N: 2.5, sst: [10, 9, 9, 11, 16, 22, 25.5, 26.5, 24, 20, 15.5, 12],
+      ad: 'Karadeniz', istasyon: { id: '#NODE-KARADENIZ-01', ad: 'Trabzon · Ganita sahili', konum: '41.0050° K, 39.7350° D' },
+      S: 17.5, N: 8.5, sst: [10.5, 9, 9.2, 11, 15.5, 21.5, 25.5, 27, 25, 21, 16.5, 12.5],
       su: [[22, 72, 104], [8, 32, 58], [2, 9, 20]], serit: '#1d5c7c',
+      yukNot: 'Tahmin: Trabzon kıyı suyunda doğrudan ölçüm bulunamadı. Dere suyu (≈ 32 µmol/L) ile açık deniz (≈ 0,6 µmol/L) yaklaşık %25 karışımıyla hesaplandı; liman içi, dere ağzı ve atık su etkisi.',
       gercek: {
-        tuzluluk: 'Yüzeyde 17–18 psu; nehir ağızlarında daha düşük',
+        tuzluluk: 'Yüzeyde 17–18 psu; dere ağızlarında daha düşük',
         sicaklik: 'Şubat ≈ 9 °C · Ağustos ≈ 27 °C (Trabzon)',
         oksijen: 'Yüzey oksijenli; kıyıya yakın yerlerde 100–150 m\'nin altında hiç oksijen yok',
-        azot: 'Güneydoğu kıyısında ortalama nitrat 0,58 ± 1,17 µmol/L; nehir ağızlarında yüksek (Yeşilırmak\'ta 89 µmol/L). Samsun ve Giresun önlerinde artan ötrofikasyon riski',
-        musilaj: 'Haziran 2021\'de müsilaj Ordu Yalıköy limanında birikti. Yaz TRIX değerleri 4\'ün altında: ötrofikasyon riski yok.',
+        azot: 'Güneydoğu Karadeniz kıyı suyunda ortalama nitrat 0,58 ± 1,17 µmol/L. Trabzon\'a dökülen Sürmene ve Solaklı derelerinde nitrat ≈ 1,0–1,1 mg/L (≈ 17 µmol/L), amonyum ≈ 0,25–0,30 mg/L (≈ 15 µmol/L). Bölgede çay ve fındık tarımında azotlu gübre yoğun kullanılıyor',
+        musilaj: 'Ekibimiz Trabzon\'da liman içinde krem renkli, köpüklü bir yüzey tabakası fotoğrafladı. 2021\'de Karadeniz\'de Ordu Fatsa ve Düzce Akçakoca\'da müsilaj görüldü; Trabzon Sürmene\'deki bir lekeyi KTÜ inceledi ve ilk bulgularda müsilaj çıkmadı.',
       },
       kaynak: [
         ['Güneydoğu Karadeniz besin değişkenliği (KTÜ)', 'https://avesis.ktu.edu.tr/yayin/82bac244-a6c2-4c70-ae23-71ecf48527ba/spatial-temporal-and-vertical-variability-of-nutrients-in-the-southeastern-black-sea'],
-        ['Yeşilırmak\'tan denize besin taşınımı', 'https://avesis.ktu.edu.tr/yayin/047f4bc3-4e63-4698-b35a-3959184e99c0/investigation-of-discharge-levels-of-dissolved-inorganic-nutrients-from-yesilirmak-river-to-the-black-sea'],
+        ['Solaklı ve Sürmene derelerinde besin yükleri (Trabzon)', 'https://dergipark.org.tr/tr/download/article-file/58119'],
         ['ÇŞB Deniz Kalitesi Bülteni · Karadeniz 2022', 'https://webdosya.csb.gov.tr/db/ced/icerikler/den-z-kal-tes--bulten--2022_karaden-z-20230720163652.pdf'],
         ['Karadeniz tuzluluğu ve oksijensiz derin su', 'https://www.britannica.com/place/Black-Sea'],
-        ['Müsilaj (2021 Karadeniz kaydı)', 'https://en.wikipedia.org/wiki/Marine_mucilage'],
+        ['Trabzon Sürmene incelemesi (2021)', 'https://www.sondakika.com/guncel/haber-karadeniz-deki-kirlilikte-musilaj-endisesi-14210755/'],
+        ['Deniz salyası Karadeniz\'de (2021)', 'https://www.trthaber.com/haber/turkiye/deniz-salyasi-karadenizde-586625.html'],
+        ['Gübre kullanımı ve Karadeniz müsilajı', 'https://www.sozcu.com.tr/2021/gundem/deniz-salyasi-karadenizde-6472905/'],
         ['Su sıcaklığı · Trabzon', 'https://tr.seatemperature.net/current/turkey/trabzon-trabzon-turkey'],
       ],
     },
@@ -1740,7 +1743,7 @@
       ${satir('Yüzey suyu sıcaklığı', (d) => d.gercek.sicaklik)}
       ${satir('Çözünmüş oksijen', (d) => d.gercek.oksijen)}
       ${satir('Azot', (d) => d.gercek.azot)}
-      ${satir('Simülasyondaki ÇAİ yükü', (d) => `${String(d.N).replace('.', ',')} µmol/L`)}
+      ${satir('Simülasyondaki ÇAİ yükü', (d) => `${String(d.N).replace('.', ',')} µmol/L<br><small>${d.yukNot || 'Literatür aralığından seçilmiş temsilî değer.'}</small>`)}
       ${satir('Müsilaj geçmişi', (d) => d.gercek.musilaj)}
       ${satir('Kaynaklar', (d) => `<ul>${d.kaynak.map(([ad, url]) => `<li><a href="${url}" target="_blank" rel="noopener">${ad}</a></li>`).join('')}</ul>`)}
     </tbody>`;
