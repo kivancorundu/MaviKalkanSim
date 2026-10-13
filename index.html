@@ -154,11 +154,42 @@
   .alan small { color: var(--sonuk); font-size: 12px; }
   input[type="range"] { width: 100%; accent-color: var(--mavi); }
   select { width: 100%; padding: 8px 10px; border-radius: var(--r); border: 1px solid var(--cizgi); background: var(--panel2); }
-  .hazirlar { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-  .hazirlar button { text-align: left; padding: 8px 10px; border-radius: var(--r); border: 1px solid var(--cizgi); background: var(--panel2); cursor: pointer; display: grid; gap: 1px; }
-  .hazirlar button:hover { border-color: var(--mavi); }
-  .hazirlar b { font-size: 13px; font-weight: 600; }
-  .hazirlar span { font-family: var(--f-mono); font-size: 11px; color: var(--soluk); }
+  .alan-satir { display: flex; justify-content: space-between; gap: 8px; font-size: 13.5px; }
+  .alan-satir output { font-family: var(--f-mono); color: var(--mavi-acik); }
+
+  /* Deniz seçimi */
+  .denizler { display: grid; gap: 10px; }
+  .deniz-liste { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+  .deniz { text-align: left; display: grid; gap: 6px; padding: 0 0 12px; border-radius: var(--r); border: 1px solid var(--cizgi); background: var(--panel); cursor: pointer; overflow: hidden; min-width: 0; }
+  .deniz:hover { border-color: var(--mavi); }
+  .deniz[aria-checked="true"] { border-color: var(--mavi); box-shadow: 0 0 0 1px var(--mavi) inset; }
+  .deniz .serit { height: 6px; }
+  .deniz > :not(.serit) { padding-inline: 12px; }
+  .deniz h3 { margin: 0; font-family: var(--f-baslik); font-weight: 600; font-size: 22px; line-height: 1.1; }
+  .deniz .ist { font-size: 12.5px; color: var(--soluk); }
+  .deniz .deger { font-family: var(--f-mono); font-size: 12px; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .deniz .risk { font-size: 12.5px; }
+  .deniz .risk.kritik { color: var(--kritik); }
+  .deniz .risk.uyari { color: var(--uyari); }
+  .deniz .risk.iyi { color: var(--iyi); }
+
+  /* Devre şeması */
+  .sema-kap { overflow-x: auto; }
+  #semaDurum { justify-self: start; }
+  .sema { display: block; width: 100%; min-width: 560px; height: auto; }
+  .sema text { fill: var(--soluk); font-family: var(--f-mono); font-size: 11px; }
+  .sema text.baslik { fill: var(--ink); font-size: 12px; }
+  .sema text.deger { fill: var(--mavi-acik); font-size: 12px; }
+  .sema text.hata { fill: var(--kritik); }
+  .sema .kablo { fill: none; stroke-width: 2.4; stroke-linecap: round; opacity: 0.85; transition: stroke-width 0.2s; }
+  .sema .kablo.okunuyor { stroke-width: 4.5; opacity: 1; }
+  .sema .ortu rect { fill: rgba(4, 7, 13, 0.78); }
+  .sema .ortu text { fill: var(--ink); font-family: var(--f-govde); font-size: 15px; }
+
+  .gercek th[scope="row"] { color: var(--soluk); white-space: nowrap; }
+  .gercek td { min-width: 190px; }
+  .gercek a { color: var(--mavi-acik); }
+  .gercek ul { margin: 0; padding-left: 16px; display: grid; gap: 2px; font-size: 12.5px; }
   .not { font-size: 12.5px; color: var(--soluk); margin: 0; }
 
   .bilesen { list-style: none; margin: 0; padding: 0; display: grid; }
@@ -216,6 +247,9 @@
     .yan { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
     .yontem { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
+  @media (max-width: 960px) {
+    .deniz-liste { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
   @media (max-width: 820px) {
     .bas-ana { grid-template-columns: minmax(0, 1fr); }
     .uclu { grid-template-columns: minmax(0, 1fr); }
@@ -237,17 +271,23 @@
       <div>
         <h1>Mavi Kalkan</h1>
         <p class="slogan">Müsilaj yüzeye çıkmadan önce.</p>
-        <p class="giris">Wokwi devresinde su değerlerini potansiyometreyle veriyorduk. Burada değerler canlı bir deniz modelinden geliyor. Aynı Marmara suyunda üç durumu yan yana çalıştırın: devre yokken müsilaj oluşur, devre çalışırken kuluçkada yakalanıp yok edilir, devre arızalanınca yine oluşur.</p>
+        <p class="giris">Wokwi devresinde su değerlerini potansiyometreyle veriyorduk. Burada değerler dört denizin gerçek ölçümlerinden ve bu değerlerle çalışan canlı bir deniz modelinden geliyor. Bir deniz ve ay seçin, aynı suda üç durumu yan yana izleyin: devre yokken müsilaj oluşur, devre çalışırken kuluçkada yakalanıp yok edilir, devre arızalanınca yine oluşur.</p>
       </div>
       <dl class="kunye">
-        <dt>İstasyon</dt><dd>#NODE-MARMARA-04</dd>
-        <dt>Konum</dt><dd>40.7012° K, 29.0521° D</dd>
-        <dt>Eşikler</dt><dd>Sıcaklık &gt; 22 °C · Azot &gt; 60 mg/L · ÇO &lt; 4 mg/L</dd>
+        <dt>Deniz</dt><dd id="kDeniz">Marmara Denizi</dd>
+        <dt>İstasyon</dt><dd id="kIstasyon">#NODE-MARMARA-04 · İzmit Körfezi</dd>
+        <dt>Konum</dt><dd id="kKonum">40.7350° K, 29.7500° D</dd>
+        <dt>Eşikler</dt><dd>Sıcaklık &gt; 22 °C · Azot (ÇAİ) &gt; 5 µmol/L · ÇO &lt; 4 mg/L</dd>
         <dt>Doğrulama</dt><dd>3 günlük trend filtresi</dd>
         <dt>Takım</dt><dd>Mavi Kalkan · Robotekno Koleji</dd>
       </dl>
     </div>
   </header>
+
+  <section class="denizler" aria-labelledby="denizBaslik">
+    <div class="blok-bas"><h2 id="denizBaslik" class="kas">Şamandıranın kurulduğu deniz</h2><span class="kas" id="denizAyEtiket">Temmuz koşulları</span></div>
+    <div class="deniz-liste" id="denizListe" role="radiogroup" aria-labelledby="denizBaslik"></div>
+  </section>
 
   <div class="cubuk">
     <div class="sekmeler" role="tablist" aria-label="Görünüm">
@@ -277,7 +317,7 @@
 
         <div class="blok">
           <div class="blok-bas">
-            <h2>Müsilaj birikimi: aynı deniz, üç durum</h2>
+            <h2 id="grafikBaslik">Müsilaj birikimi: aynı deniz, üç durum</h2>
             <div class="lejant">
               <span><i style="background: var(--kritik)"></i>Devre yok</span>
               <span><i style="background: var(--mavi)"></i>Devre çalışıyor</span>
@@ -307,6 +347,13 @@
         </div>
         <div class="gostergeler" id="gostergeler"></div>
       </section>
+
+      <section class="blok" id="semaBlok">
+        <div class="blok-bas"><h2>Devre şeması</h2><span class="kas" id="semaOdak">Wokwi · Devre çalışıyor</span></div>
+        <span class="cip" id="semaDurum">main.py</span>
+        <div class="sema-kap"><svg class="sema" id="sema" viewBox="0 0 760 300" role="img" aria-label="Wokwi devresinin canlı şeması: Raspberry Pi Pico, üç potansiyometre, ultrasonik sensör, röle ve servo"></svg></div>
+        <p class="not" id="semaNot">Pico her yarım günde potansiyometreleri sırayla okur. Düğmeler sensörün okuduğu değere göre döner. Acil durumda röle ışığı yanar, servo 90°'ye döner.</p>
+      </section>
     </div>
 
     <aside class="yan">
@@ -332,22 +379,23 @@
       <section class="blok">
         <div class="blok-bas"><h2>Deniz koşulları</h2></div>
         <div class="alan">
-          <div class="alan-bas"><label for="sicaklikAyar">Su sıcaklığı</label><output id="sicaklikCikti" for="sicaklikAyar">25.5 °C</output></div>
-          <input type="range" id="sicaklikAyar" min="10" max="32" step="0.1" value="25.5">
-          <small>Mevsim. Eşik 22 °C.</small>
+          <label for="aySecim" class="alan-bas"><span>Ay</span></label>
+          <select id="aySecim"></select>
+          <small>Seçilen ayın ortalama yüzey suyu sıcaklığı yüklenir ve deney boyunca sabit tutulur.</small>
         </div>
         <div class="alan">
-          <div class="alan-bas"><label for="azotAyar">Kıyıdan gelen azot yükü</label><output id="azotCikti" for="azotAyar">115 mg/L</output></div>
-          <input type="range" id="azotAyar" min="0" max="160" step="1" value="115">
-          <small>Atık su ve tarımsal akış. Eşik 60 mg/L. Çözünmüş oksijen modelden hesaplanır.</small>
+          <div class="alan-bas"><label for="sicaklikAyar">Su sıcaklığı</label><output id="sicaklikCikti" for="sicaklikAyar">24.5 °C</output></div>
+          <input type="range" id="sicaklikAyar" min="5" max="32" step="0.1" value="24.5">
+          <small>Eşik 22 °C.</small>
         </div>
-        <div class="hazirlar" id="hazirlar">
-          <button type="button" data-t="25.5" data-n="115"><b>Marmara 2021</b><span>25.5 °C · 115 mg/L</span></button>
-          <button type="button" data-t="28" data-n="140"><b>Sıcak yaz</b><span>28 °C · 140 mg/L</span></button>
-          <button type="button" data-t="23.9" data-n="100"><b>Wokwi değerleri</b><span>23.9 °C · 100 mg/L</span></button>
-          <button type="button" data-t="14" data-n="30"><b>Temiz kış</b><span>14 °C · 30 mg/L</span></button>
+        <div class="alan">
+          <div class="alan-bas"><label for="azotAyar">Çözünmüş anorganik azot (ÇAİ)</label><output id="azotCikti" for="azotAyar">9.0 µmol/L</output></div>
+          <input type="range" id="azotAyar" min="0" max="20" step="0.1" value="9">
+          <small id="azotNot">Eşik 5 µmol/L. Kıyıdan gelen atık su ve nehir yükü.</small>
         </div>
-        <p class="not">Hazır senaryo seçince deney baştan başlar. Kaydırıcılar çalışan deneyi anında etkiler.</p>
+        <div class="alan-satir"><span>Tuzluluk</span><output id="tuzCikti">23 psu</output></div>
+        <p class="not">Çözünmüş oksijen modelden hesaplanır. Doygunluk değeri sıcaklık ve tuzluluktan Weiss (1970) denklemiyle bulunur.</p>
+        <button type="button" class="dug" id="olcumeDon">Ölçülmüş değerlere dön</button>
       </section>
 
       <section class="blok">
@@ -372,7 +420,7 @@
     <div class="blok-bas"><h2>Simülasyon projeyi nasıl modelliyor</h2><span class="kas">Kapsanamayan alanlarda algıla, erken müdahaleyi güçlendir</span></div>
     <div class="yontem">
       <article><span class="no">01</span><span class="kas">Derin sensör hattı</span><h3>IP68 şamandıra</h3><p>Sıcaklık, azot ve çözünmüş oksijen her yarım günde bir okunur. Fosfor ve klorofil de izlenir. Kamera yalnızca yüzeyi görür, bu yüzden kuluçkadaki müsilajı kaçırır.</p></article>
-      <article><span class="no">02</span><span class="kas">Wokwi ana döngüsü</span><h3>Eşik kontrolü</h3><p>Koşul main.py ile aynı: sıcaklık &gt; 22, azot &gt; 60 ve ÇO &lt; 4 ise acil durum. Yalnız biri aşılırsa ötrofikasyon uyarısı verilir.</p></article>
+      <article><span class="no">02</span><span class="kas">Wokwi ana döngüsü</span><h3>Eşik kontrolü</h3><p>Koşul main.py ile aynı: sıcaklık &gt; 22 °C, azot eşiğin üstünde ve ÇO &lt; 4 mg/L ise acil durum. Yalnız biri aşılırsa ötrofikasyon uyarısı verilir.</p></article>
       <article><span class="no">03</span><span class="kas">Doğrulama filtresi</span><h3>3 günlük trend</h3><p>Risk 3 gün kesintisiz sürerse kuluçka evresi doğrulanır. Geçici sapmalar sayaçtan düşer. Doğrulanmış bölgede yeniden tetikleme 1 gün sürer.</p></article>
       <article><span class="no">04</span><span class="kas">Nokta atışı müdahale</span><h3>USV ve bakteri dozu</h3><p>AFAD'a GPS koordinatlı bildirim gider. USV-01 koordinata gelir, santrifüj filtre müsilajı emer, bakteri dozu azot ve fosforu tüketir.</p></article>
     </div>
@@ -381,6 +429,7 @@
         <thead><tr><th>Wokwi devresi</th><th>Simülasyondaki karşılığı</th></tr></thead>
         <tbody>
           <tr><td>Potansiyometre 1, 2, 3</td><td>Deniz modelinin ürettiği sıcaklık, azot ve çözünmüş oksijen (küçük ölçüm gürültüsüyle)</td></tr>
+          <tr><td>Azot eşiği <code>azot &gt; 60.0</code> (mg/L)</td><td>ÇAİ &gt; 5 µmol/L. Deniz suyunda azot µmol/L düzeyindedir; 60 mg/L ancak arıtılmamış atık suda görülür.</td></tr>
           <tr><td>HC-SR04 ultrasonik</td><td>Derinlik okuması, rapordaki <code>Derinlik: 15.0cm</code></td></tr>
           <tr><td><code>role_pompa.value(1)</code></td><td>USV santrifüj filtre ve biyoremediasyon pompası: müsilajı emer, azotu giderir, suyu karıştırıp oksijen verir</td></tr>
           <tr><td><code>vana_aci_ayarla(90)</code></td><td>Bakteri dozaj vanası: suya verilen bakteri müsilajı ve alg fazlasını parçalar</td></tr>
@@ -391,6 +440,12 @@
     <p class="not">Model eğitim amaçlıdır. Katsayılar müsilaj oluşumunun bilinen koşullarını (sıcak, azotça zengin, oksijeni azalan durgun su) temsil edecek şekilde seçildi. Gerçek ölçümlerle kalibre edilmedi.</p>
   </section>
 
+  <section class="blok" id="gercekBlok">
+    <div class="blok-bas"><h2>Denizlerin gerçek değerleri</h2><span class="kas">Bilimsel yayınlar ve izleme raporları</span></div>
+    <div class="tablo-kap"><table class="esleme gercek" id="gercekTablo"></table></div>
+    <p class="not">Şubat ve ağustos sıcaklıkları kaynaklardan alındı; aradaki aylar bu iki değer ve mevsim döngüsüyle yaklaşık olarak dolduruldu. "≈" ile işaretli değerler kaynakta istasyona özgü değil, genel değerdir. Simülasyondaki ÇAİ yükü her istasyon için literatür aralığından seçilmiş temsilî bir değerdir.</p>
+  </section>
+
   <footer class="kas"><span>Mavi Kalkan · Robotekno Koleji</span><span>TYMM OB8 · Sürdürülebilirlik ve yeşil okul</span></footer>
 </div>
 
@@ -398,21 +453,27 @@
 /* Mavi Kalkan — deniz ekosistemi + şamandıra/USV kontrol modeli.
    Zaman birimi: gün. Hem tarayıcıda hem Node'da çalışır. */
 (function (root) {
-  const ESIK = { SICAKLIK: 22.0, AZOT: 60.0, OKSIJEN: 4.0 };
+  // Azot gerçek deniz birimiyle: çözünmüş anorganik azot (ÇAİ/DIN), µmol/L.
+  // Wokwi'deki 60 mg/L deniz suyunda görülmez (atık su düzeyi); kıyı sularında ötrofik koşullar birkaç µmol/L'de başlar.
+  const ESIK = { SICAKLIK: 22.0, AZOT: 5.0, OKSIJEN: 4.0 };
   const KONTROL_PERIYODU = 0.5;   // gün: main.py döngüsündeki time.sleep(2)'nin simülasyon karşılığı
   const TREND_GUN = 3;            // 3 günlük trend doğrulama filtresi
   const TEKRAR_GUN = 1;          // doğrulanmış (izlemedeki) bölgede yeniden tetikleme süresi
   const MUDAHALE_SURESI = 4;      // gün: doğrulanan krizde USV'nin bölgede kalma süresi
   const USV_YOL_GUN = 0.6;        // gün: limandan şamandıra koordinatına seyir
   const YUZEY_ESIGI = 55;         // müsilaj indeksi: bu değerin üstünde yüzeyde tabaka oluşur
-  const KONUM = '40.7012° K, 29.0521° D';
+  const VARSAYILAN_ISTASYON = { id: '#NODE-MARMARA-04', konum: '40.7350° K, 29.7500° D' };
+  const NK = 1 / 12;              // eski 0–160 ölçeğinden µmol/L'ye dönüşüm katsayısı
 
   const esikGun = (k) => (k.ilkAlarmGunu === null ? TREND_GUN : TEKRAR_GUN);
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
-  // Deniz suyunda doygun çözünmüş oksijen (tuzluluk düzeltmeli yaklaşık), mg/L
-  function doygunOksijen(T) {
-    return (14.6 - 0.41 * T + 0.0079 * T * T - 0.0000777 * T * T * T) * 0.82;
+  // Doygun çözünmüş oksijen, mg/L — Weiss (1970) denklemi; T °C, S psu
+  function doygunOksijen(T, S) {
+    const K = (T + 273.15) / 100;
+    const lnC = -173.4292 + 249.6339 / K + 143.3483 * Math.log(K) - 21.8492 * K
+      + S * (-0.033096 + 0.014259 * K - 0.0017 * K * K);
+    return Math.exp(lnC) * 1.429; // mL/L → mg/L
   }
 
   function evre(M) {
@@ -434,12 +495,14 @@
     reset(env) {
       this.t = 0;
       this.T = env.T - 1.5;
-      this.N = env.N * 0.85;
-      this.P = env.N / 18;       // fosfor, mg/L (azot yüküyle birlikte gelir)
+      this.N = env.N * 0.85;     // ÇAİ, µmol/L
+      this.P = env.N / 16;       // fosfat, µmol/L (Redfield oranıyla azot yüküne bağlı)
+      this.S = env.S || 35;      // tuzluluk, psu
+      this.istasyon = env.istasyon || VARSAYILAN_ISTASYON;
       this.A = 8;                // fitoplankton yoğunluğu (0–100) → klorofil
       this.M = 0;                // müsilaj indeksi (0–100)
       this.E = 0;                // suya verilen bakteri/enzim konsantrasyonu
-      this.DO = doygunOksijen(this.T);
+      this.DO = doygunOksijen(this.T, this.S);
       this.derinlik = 15.0;
       this.pompa = false;        // röle komutu → USV santrifüj/biyoremediasyon pompası
       this.vana = false;         // servo komutu → bakteri dozaj vanası
@@ -497,21 +560,22 @@
       this.T += (env.T - this.T) * Math.min(1, 0.6 * dt);
       // Kıyıdan gelen atık su: deniz, yük seviyesine doğru tekrar dolar
       this.N += (env.N - this.N) * 0.15 * dt;
-      this.P += (env.N / 18 - this.P) * 0.15 * dt;
+      this.P += (env.N / 16 - this.P) * 0.15 * dt;
+      this.S = env.S || this.S;
 
       const fT = clamp((this.T - 17) / 7, 0, 1.6);
-      const fN = this.N / (this.N + 35);
+      const fN = this.N / (this.N + 35 * NK);
       const buyume = 0.9 * fT * fN * this.A * (1 - this.A / 100);
       const bakteriEtkisi = 0.08 * this.E * this.A;
       this.A += (buyume - 0.12 * this.A - bakteriEtkisi) * dt;
       this.A = clamp(this.A, 2, 100);
-      this.N -= 0.15 * buyume * dt;
-      this.P -= 0.01 * buyume * dt;
+      this.N -= 0.15 * NK * buyume * dt;
+      this.P -= 0.15 * NK / 16 * buyume * dt;
 
       // Müsilaj: sıcak, azotça zengin, durgun suda strese giren fitoplanktonun salgısı dipte birikir
-      const stresT = clamp((this.T - 21) / 3, 0, 1.8);
-      const stresN = clamp((this.N - 50) / 50, 0, 1.6);
-      const uretim = 0.0155 * this.A * stresT * stresN;
+      const stresT = clamp((this.T - 15) / 7, 0, 1.8);
+      const stresN = clamp((this.N - 50 * NK) / (50 * NK), 0, 1.6);
+      const uretim = 0.02 * this.A * stresT * stresN;
       const dogalCozunme = 0.03 * this.M;
       const bakteriCozunme = 1.2 * this.E * this.M;
       const santrifuj = filtre ? 0.35 * this.M : 0;
@@ -519,19 +583,19 @@
       this.M = clamp(this.M, 0, 100);
 
       // Oksijen: yüzeyden yeniden havalanma − ayrışma/solunum + USV pompasının sirkülasyonu
-      const sat = doygunOksijen(this.T);
+      const sat = doygunOksijen(this.T, this.S);
       const tuketim = 0.05 * this.M + 0.018 * this.A;
       const havalandirma = filtre ? 1.6 * (sat + 0.4 - this.DO) : 0;
       this.DO += (0.5 * (sat - this.DO) - tuketim + havalandirma) * dt;
       this.DO = clamp(this.DO, 0.2, 12);
 
       if (filtre) {
-        this.N -= 12 * dt;          // biyoremediasyon: azot giderimi
-        this.P -= 0.6 * dt;
+        this.N -= 12 * NK * dt;     // biyoremediasyon: azot giderimi
+        this.P -= 12 * NK / 16 * dt;
         this.pompaGun += dt;
       }
-      this.N = clamp(this.N, 0, 200);
-      this.P = clamp(this.P, 0, 15);
+      this.N = clamp(this.N, 0, 40);
+      this.P = clamp(this.P, 0, 3);
       this.E += ((dozaj ? 1.5 : 0) - 0.6 * this.E) * dt;
       this.E = Math.max(0, this.E);
 
@@ -552,21 +616,21 @@
 
       if (this.arizaVar('guc')) {
         this.pompa = false; this.vana = false; this.durum = 'kapali'; this.okuma = null; this.trend = 0;
-        if (this.raporNo % 4 === 0) this.yaz('[BAĞLANTI YOK] #NODE-MARMARA-04 yanıt vermiyor. Şamandıradan paket alınamadı.', 'hata');
+        if (this.raporNo % 4 === 0) this.yaz(`[BAĞLANTI YOK] ${this.istasyon.id} yanıt vermiyor. Şamandıradan paket alınamadı.`, 'hata');
         this.raporNo++;
         return;
       }
 
       const gurultu = () => (Math.random() - 0.5) * 0.2;
       const sicaklik = this.T + gurultu();
-      const azot = this.N + gurultu() * 5;
+      const azot = this.N + gurultu() * 0.4;
       let oksijen = this.DO + gurultu();
       const derinlik = this.derinlik;
       if (this.arizaVar('sensor')) oksijen = 7.2; // ÇO sensörü takılı kaldı
       this.okuma = { sicaklik, azot, oksijen, derinlik, fosfor: this.P, klorofil: this.klorofil() };
 
       this.raporNo++;
-      this.yaz(`[TEKNİK RAPOR #${this.raporNo}] Sıcaklık: ${sicaklik.toFixed(1)}°C | Azot: ${azot.toFixed(1)}mg/L | DO: ${oksijen.toFixed(1)}mg/L | Derinlik: ${derinlik.toFixed(1)}cm`, 'rapor');
+      this.yaz(`[TEKNİK RAPOR #${this.raporNo}] Sıcaklık: ${sicaklik.toFixed(1)}°C | Azot: ${azot.toFixed(1)}µmol/L | DO: ${oksijen.toFixed(1)}mg/L | Derinlik: ${derinlik.toFixed(1)}cm`, 'rapor');
 
       const ham = sicaklik > ESIK.SICAKLIK && azot > ESIK.AZOT && oksijen < ESIK.OKSIJEN;
       const aktuatorBozuk = this.arizaVar('aktuator');
@@ -593,9 +657,9 @@
           this.acilAktif = true;
           this.yaz('!'.repeat(70), 'acil');
           this.yaz('🚨 [ACİL DURUM - AFAD KRİZ YÖNETİM MERKEZİNE İLETİLDİ] 🚨', 'acil');
-          this.yaz(`İSTASYON ID : #NODE-MARMARA-04 | DERİNLİK: ${derinlik.toFixed(1)}m | KONUM: ${KONUM}`, 'acil');
+          this.yaz(`İSTASYON ID : ${this.istasyon.id} | DERİNLİK: ${derinlik.toFixed(1)}m | KONUM: ${this.istasyon.konum}`, 'acil');
           this.yaz('TEŞHİS      : Kuluçka Evresindeki Müsilaj (Deniz Salyası) Kümelenmesi — 3 günlük trend doğrulandı', 'acil');
-          this.yaz(`ANOMALİ     : Sıcaklık: ${sicaklik.toFixed(1)}°C | Azot: ${azot.toFixed(1)}mg/L | DO: ${oksijen.toFixed(1)}mg/L`, 'acil');
+          this.yaz(`ANOMALİ     : Sıcaklık: ${sicaklik.toFixed(1)}°C | Azot: ${azot.toFixed(1)}µmol/L | DO: ${oksijen.toFixed(1)}mg/L`, 'acil');
           this.yaz('AKSİYON     : USV-01 otonom rota oluşturdu → şamandıra koordinatına seyir', 'acil');
           this.yaz('AKSİYON     : Santrifüj Filtre / Biyoremediasyon Pompaları DEVREDE (Röle: AÇIK)', 'acil');
           this.yaz('AKSİYON     : Hedefli Bakteri Dozaj Vanası AÇILDI (Servo: 90°)', 'acil');
@@ -665,7 +729,7 @@
     }
   }
 
-  root.MaviKalkan = { Tank, ESIK, YUZEY_ESIGI, TREND_GUN, KONUM, evre, doygunOksijen, clamp };
+  root.MaviKalkan = { Tank, ESIK, YUZEY_ESIGI, TREND_GUN, evre, doygunOksijen, clamp };
 })(typeof window !== 'undefined' ? window : globalThis);
 </script>
 <script>
@@ -679,8 +743,92 @@
   const RENK = { mavi: css('--mavi'), kritik: css('--kritik'), uyari: css('--uyari'), iyi: css('--iyi'), cizgi: css('--cizgi'), soluk: css('--soluk'), sonuk: css('--sonuk'), salya: css('--salya'), ink: css('--ink'), maviAcik: css('--mavi-acik') };
   const gunF = (t) => t.toFixed(1).replace('.', ',');
 
-  const ENV = { T: 25.5, N: 115 };
-  const durum = { sekme: 'karsi', oynuyor: true, hiz: 2, bitti: { tek: false, karsi: false }, odak: 1 };
+  const AYLAR = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
+  // Gerçek değerler: kaynaklar sayfadaki "Denizlerin gerçek değerleri" tablosunda.
+  // sst: aylık ortalama yüzey suyu sıcaklığı (°C); Şubat/Ağustos kaynaktan, ara aylar yaklaşık.
+  const DENIZLER = {
+    marmara: {
+      ad: 'Marmara Denizi', istasyon: { id: '#NODE-MARMARA-04', ad: 'İzmit Körfezi', konum: '40.7350° K, 29.7500° D' },
+      S: 23, N: 9, sst: [9.5, 8.8, 9.2, 11.5, 16, 21.5, 24.5, 25, 23, 19, 15, 11.5],
+      su: [[34, 96, 140], [12, 46, 80], [3, 14, 30]], serit: '#2f7fa8',
+      gercek: {
+        tuzluluk: 'Üst tabaka 23 ± 2 psu; 25 m altında Akdeniz kökenli 38,5 psu, keskin tabakalaşma',
+        sicaklik: 'Şubat ≈ 9 °C · Ağustos ≈ 25 °C (İstanbul)',
+        oksijen: 'Tabakalaşmanın altındaki suyun neredeyse tamamı hipoksi sınırı olan 2 mg/L\'nin altında, yer yer oksijensiz',
+        azot: 'Kıyıda nitrat+nitrit 0,01–3,4 µmol/L; toplam azot 125–271 µg/L (≈ 9–19 µmol/L). İnorganik azotun baskın formu amonyum',
+        musilaj: '2007 ve 2020–21. Nisan 2021\'de tüm istasyonlar "kötü" ekolojik kalitedeydi; fitoplanktonu azot sınırlıyordu. Erken evre 15 °C\'nin altında görüldü.',
+      },
+      kaynak: [
+        ['Ergül vd. 2021 · Nisan 2021 müsilaj başlangıcı', 'https://blackmeditjournal.org/wp-content/uploads/8-2021-2_232-257.pdf'],
+        ['Marmara kıyı suyu kalitesi (azot, fosfor)', 'https://d-nb.info/1375115057/34'],
+        ['Marmara\'da besin dinamiği ve ötrofikasyon', 'https://openaccess.marmara.edu.tr/entities/publication/ad901f31-6e88-4360-9faa-1d9a83c343c3'],
+        ['Üst/alt tabaka tuzluluğu', 'https://trjfas.org/pdf.php?id=15031'],
+        ['25 m tabakalaşma', 'https://www.trjfas.org/pdf.php?id=15113'],
+        ['Oksijen tükenmesi ve müsilaj (ODTÜ)', 'https://avesis.metu.edu.tr/yayin/514a2c59-6965-489d-8662-5a2cd1598bca/marmara-denizinde-oksijenin-tukenmesi-ve-musilajin-etkileri'],
+        ['Su sıcaklığı · İstanbul', 'https://tr.seatemperature.net/current/turkey/istanbul-istanbul-turkey'],
+      ],
+    },
+    karadeniz: {
+      ad: 'Karadeniz', istasyon: { id: '#NODE-KARADENIZ-01', ad: 'Ordu açığı', konum: '41.0500° K, 37.7500° D' },
+      S: 17.5, N: 2.5, sst: [10, 9, 9, 11, 16, 22, 25.5, 26.5, 24, 20, 15.5, 12],
+      su: [[22, 72, 104], [8, 32, 58], [2, 9, 20]], serit: '#1d5c7c',
+      gercek: {
+        tuzluluk: 'Yüzeyde 17–18 psu; nehir ağızlarında daha düşük',
+        sicaklik: 'Şubat ≈ 9 °C · Ağustos ≈ 27 °C (Trabzon)',
+        oksijen: 'Yüzey oksijenli; kıyıya yakın yerlerde 100–150 m\'nin altında hiç oksijen yok',
+        azot: 'Güneydoğu kıyısında ortalama nitrat 0,58 ± 1,17 µmol/L; nehir ağızlarında yüksek (Yeşilırmak\'ta 89 µmol/L). Samsun ve Giresun önlerinde artan ötrofikasyon riski',
+        musilaj: 'Haziran 2021\'de müsilaj Ordu Yalıköy limanında birikti. Yaz TRIX değerleri 4\'ün altında: ötrofikasyon riski yok.',
+      },
+      kaynak: [
+        ['Güneydoğu Karadeniz besin değişkenliği (KTÜ)', 'https://avesis.ktu.edu.tr/yayin/82bac244-a6c2-4c70-ae23-71ecf48527ba/spatial-temporal-and-vertical-variability-of-nutrients-in-the-southeastern-black-sea'],
+        ['Yeşilırmak\'tan denize besin taşınımı', 'https://avesis.ktu.edu.tr/yayin/047f4bc3-4e63-4698-b35a-3959184e99c0/investigation-of-discharge-levels-of-dissolved-inorganic-nutrients-from-yesilirmak-river-to-the-black-sea'],
+        ['ÇŞB Deniz Kalitesi Bülteni · Karadeniz 2022', 'https://webdosya.csb.gov.tr/db/ced/icerikler/den-z-kal-tes--bulten--2022_karaden-z-20230720163652.pdf'],
+        ['Karadeniz tuzluluğu ve oksijensiz derin su', 'https://www.britannica.com/place/Black-Sea'],
+        ['Müsilaj (2021 Karadeniz kaydı)', 'https://en.wikipedia.org/wiki/Marine_mucilage'],
+        ['Su sıcaklığı · Trabzon', 'https://tr.seatemperature.net/current/turkey/trabzon-trabzon-turkey'],
+      ],
+    },
+    ege: {
+      ad: 'Ege Denizi', istasyon: { id: '#NODE-EGE-02', ad: 'İzmir Körfezi (orta)', konum: '38.4700° K, 26.9800° D' },
+      S: 38.5, N: 6, sst: [11, 10.7, 12, 14.5, 18.5, 23, 26.2, 26.2, 24, 20.5, 16.5, 13],
+      su: [[30, 102, 172], [10, 44, 96], [3, 12, 32]], serit: '#2f86c8',
+      gercek: {
+        tuzluluk: '≈ 38–39 psu (açık Ege)',
+        sicaklik: 'Şubat 10,7 °C · Temmuz–Ağustos 26,2 °C (İzmir)',
+        oksijen: 'İç körfezde atık suya bağlı dip suyu hipoksisi; açık Ege oksijence zengin',
+        azot: 'Dış körfezde nitrat+nitrit 0,11–1,8 µmol/L, orta ve iç körfezde 0,13–27 µmol/L. Körfezi azot sınırlıyor; açık Ege oligotrofik',
+        musilaj: '2021\'de Marmara\'dan çıkan müsilaj Kuzey Ege\'de görüldü, Gökçeada tehdit altında kaldı. İzmir ve Edremit körfezlerinde ötrofikasyon riski var.',
+      },
+      kaynak: [
+        ['İzmir\'in coğrafyası · deniz suyu sıcaklığı', 'https://www.izmir.bel.tr/en/geography-of-izmir/935/44'],
+        ['İzmir Körfezi ötrofikasyon izlemesi', 'https://www.researchgate.net/publication/8954533_Monitoring_of_eutrophication_and_nutrient_limitation_in_the_Izmir_Bay_Turkey_before_and_after_Wastewater_Treatment_Plant'],
+        ['İzmir Körfezi besin yükü modeli', 'https://aperta.ulakbim.gov.tr/records/237216'],
+        ['Kuzeydoğu Ege körfezleri (Tüfekçi 2013)', 'https://blackmeditjournal.org/wp-content/uploads/299-311Vol19No3Tufekci.pdf'],
+        ['Gökçeada ve müsilaj (2021)', 'https://blackmeditjournal.org/wp-content/uploads/7-2021_2_214-231.pdf'],
+        ['Akdeniz\'de müsilaj (2021 Kuzey Ege)', 'https://www.journalismfund.eu/sea-slime-toll-mucilage-mediterranean'],
+      ],
+    },
+    akdeniz: {
+      ad: 'Akdeniz', istasyon: { id: '#NODE-AKDENIZ-03', ad: 'Mersin Körfezi', konum: '36.7500° K, 34.6500° D' },
+      S: 39, N: 3, sst: [17.5, 17, 17.5, 19, 22.5, 26, 28.5, 29.5, 28, 25, 21.5, 19],
+      su: [[26, 120, 196], [10, 54, 116], [3, 14, 38]], serit: '#2a9ad6',
+      gercek: {
+        tuzluluk: '≈ 39 psu; Levant yüzey suyu yazın daha tuzlu ve sıcak',
+        sicaklik: '≈ Şubat 17 °C · Ağustos 29–30 °C',
+        oksijen: 'Açık deniz yüzeyi oksijence zengin; birincil üretim çok düşük',
+        azot: 'Levant havzası ultra-oligotrofik, yüzey nitratı çok düşük. Mersin Körfezi\'nin 20 m\'den sığ kıyı sularında ÇAİ açık denizin yaklaşık 10 katı',
+        musilaj: 'Türkiye\'nin Akdeniz kıyısında büyük bir müsilaj kaydı bulunamadı. Fethiye ve Mersin iç körfezlerinde TRIX 4,08–5,14: ötrofik.',
+      },
+      kaynak: [
+        ['Mersin Körfezi trofik durumu (ODTÜ)', 'https://avesis.metu.edu.tr/yonetilen-tez/082e76ec-3452-4459-ab4b-9766b67a38e9/assessment-of-the-trophic-status-of-the-mersin-bay-waters-northeastern-mediterranean'],
+        ['ÇŞB izleme · Akdeniz özet raporu 2014–2019', 'https://www.researchgate.net/publication/357775774_DENIZLERDE_BUTUNLESIK_KIRLILIK_IZLEME_PROGRAMI_2014-2019_YILI_AKDENIZ_OZET_RAPORU'],
+        ['Levant Denizi nitrat ve oksijen (BGC-Argo)', 'https://bg.copernicus.org/articles/20/3203/2023/bg-20-3203-2023.pdf'],
+        ['Levant Denizi oksijen bütçesi', 'https://bg.copernicus.org/articles/23/2939/2026/'],
+      ],
+    },
+  };
+  const ENV = {};
+  const durum = { sekme: 'karsi', oynuyor: true, hiz: 2, bitti: { tek: false, karsi: false }, odak: 1, deniz: 'marmara', ay: 6 };
   const tek = new Tank('calisiyor', 'sensor');
   const karsi = [new Tank('yok'), new Tank('calisiyor'), new Tank('arizali', 'sensor')];
   const KARSI_AD = ['Devre yok', 'Devre çalışıyor', 'Devre arızalı'];
@@ -765,9 +913,10 @@
       for (let x = 0; x <= W + 6; x += 6) g.lineTo(x, dalga(x));
       g.lineTo(W, H); g.lineTo(0, H); g.closePath();
       gr = g.createLinearGradient(0, yuzey, 0, H);
-      gr.addColorStop(0, rgb(karis([30, 92, 160], [98, 102, 70], bulanik)));
-      gr.addColorStop(0.5, rgb(karis([10, 42, 88], [50, 54, 38], bulanik)));
-      gr.addColorStop(1, rgb(karis([3, 12, 30], [22, 24, 17], bulanik)));
+      const su = ENV.su || DENIZLER.marmara.su;
+      gr.addColorStop(0, rgb(karis(su[0], [98, 102, 70], bulanik)));
+      gr.addColorStop(0.5, rgb(karis(su[1], [50, 54, 38], bulanik)));
+      gr.addColorStop(1, rgb(karis(su[2], [22, 24, 17], bulanik)));
       g.fillStyle = gr; g.fill();
 
       // Gün batımı yansıması
@@ -1075,15 +1224,15 @@
       g.font = '500 11.5px "IBM Plex Sans", system-ui, sans-serif';
       g.textBaseline = 'middle';
       const yaz = (metin, x, y, hiza, renk) => {
-        g.textAlign = hiza;
+        g.textAlign = 'left';
         const w = g.measureText(metin).width + 12;
-        const x0 = hiza === 'right' ? x - w : hiza === 'center' ? x - w / 2 : x;
+        const x0 = clamp(hiza === 'right' ? x - w : hiza === 'center' ? x - w / 2 : x, 6, this.W - 6 - w);
         g.fillStyle = 'rgba(4,7,13,0.72)'; g.beginPath(); g.roundRect(x0, y - 10, w, 20, 4); g.fill();
         g.fillStyle = renk || '#e8edf6';
-        g.fillText(metin, hiza === 'right' ? x - 6 : hiza === 'center' ? x : x + 6, y + 0.5);
+        g.fillText(metin, x0 + 6, y + 0.5);
       };
       if (k.devreVar()) {
-        yaz('IP68 şamandıra · kamera', bx + 22 * s, dalga(bx) - 56 * s, 'left');
+        yaz(`IP68 şamandıra · ${k.istasyon.id}`, bx + 22 * s, dalga(bx) - 56 * s, 'left');
         yaz('Derin sensör hattı · ÇO, azot, fosfor, klorofil', bx - 12 * s, derin(0.62, bx), 'right');
       }
       if (k.usv.ilerleme > 0) {
@@ -1123,7 +1272,7 @@
   // ------------------------------------------------------------------ Göstergeler
   const GOSTERGE = [
     { a: 'T', ad: 'Sıcaklık', birim: '°C', min: 10, max: 32, esik: ESIK.SICAKLIK, yon: 1, d: 1 },
-    { a: 'N', ad: 'Azot', birim: 'mg/L', min: 0, max: 160, esik: ESIK.AZOT, yon: 1, d: 0 },
+    { a: 'N', ad: 'Azot (ÇAİ)', birim: 'µmol/L', min: 0, max: 20, esik: ESIK.AZOT, yon: 1, d: 1 },
     { a: 'DO', ad: 'Çözünmüş O₂', birim: 'mg/L', min: 0, max: 10, esik: ESIK.OKSIJEN, yon: -1, d: 1 },
     { a: 'M', ad: 'Müsilaj indeksi', birim: '/100', min: 0, max: 100, esik: YUZEY_ESIGI, yon: 1, d: 0 },
   ];
@@ -1229,9 +1378,9 @@
     return [
       ['Raspberry Pi Pico', 'MicroPython ana döngü', guc ? 'kritik' : 'iyi', guc ? 'Güç yok' : 'Çalışıyor'],
       ['Sıcaklık sensörü', 'Wokwi: potansiyometre 1', guc ? 'kapali' : (o && o.sicaklik > ESIK.SICAKLIK ? 'uyari' : 'iyi'), o ? `${o.sicaklik.toFixed(1)} °C` : yok],
-      ['Azot sensörü', 'Wokwi: potansiyometre 2', guc ? 'kapali' : (o && o.azot > ESIK.AZOT ? 'uyari' : 'iyi'), o ? `${o.azot.toFixed(1)} mg/L` : yok],
+      ['Azot sensörü', 'Wokwi: potansiyometre 2', guc ? 'kapali' : (o && o.azot > ESIK.AZOT ? 'uyari' : 'iyi'), o ? `${o.azot.toFixed(1)} µmol/L` : yok],
       ['Çözünmüş O₂ sensörü', 'Wokwi: potansiyometre 3', guc ? 'kapali' : sens ? 'kritik' : (o && o.oksijen < ESIK.OKSIJEN ? 'uyari' : 'iyi'), o ? `${o.oksijen.toFixed(1)} mg/L${sens ? ' · takılı' : ''}` : yok],
-      ['Fosfor · klorofil', 'Derin sensör hattı', guc ? 'kapali' : 'iyi', o ? `${o.fosfor.toFixed(1)} · ${o.klorofil.toFixed(0)} µg/L` : yok],
+      ['Fosfat · klorofil', 'Derin sensör hattı', guc ? 'kapali' : 'iyi', o ? `${o.fosfor.toFixed(2)} µmol/L · ${o.klorofil.toFixed(0)} µg/L` : yok],
       ['Ultrasonik HC-SR04', 'Derinlik', guc ? 'kapali' : 'iyi', o ? `${o.derinlik.toFixed(1)} cm` : yok],
       ['Kamera (OpenCV)', 'Yalnız yüzeyi görür', guc ? 'kapali' : kamera[0], guc ? yok : kamera[1]],
       ['3 günlük trend filtresi', 'Kuluçka doğrulama', guc ? 'kapali' : k.durum === 'acil' ? 'kritik' : k.trend > 0 ? 'uyari' : 'iyi', trendYazi],
@@ -1358,8 +1507,117 @@
     $('bilesenOdak').textContent = odakAd();
     $('terminalOdak').textContent = `main.py · ${odakAd()}`;
     bilesenCiz(odakTank());
+    semaGuncelle(odakTank());
     terminalGuncelle();
     olaylarGuncelle();
+  }
+
+  // ------------------------------------------------------------------ Devre şeması (Wokwi düzeni)
+  const POTLAR = [
+    { ad: 'POT1 · Sıcaklık', x: 230, min: 5, max: 35, birim: '°C', alan: 'sicaklik', renk: '#4caf50', pin: 212, serit: 266, don: 136 },
+    { ad: 'POT2 · Azot', x: 340, min: 0, max: 20, birim: 'µmol/L', alan: 'azot', renk: '#fdd835', pin: 223, serit: 277, don: 144 },
+    { ad: 'POT3 · ÇO', x: 450, min: 0, max: 12, birim: 'mg/L', alan: 'oksijen', renk: '#29b6f6', pin: 234, serit: 288, don: 152 },
+  ];
+  const POT_Y = 228;
+  let semaRapor = -1, semaFlas = 0;
+  function semaKur() {
+    const pinler = Array.from({ length: 18 }, (_, i) => 58 + i * 11);
+    const kablo = (id, d, renk) => `<path class="kablo" id="${id}" d="${d}" stroke="${renk}"/>`;
+    $('sema').innerHTML = `
+      <rect x="0" y="0" width="760" height="300" rx="8" fill="#060c16"/>
+      ${POTLAR.map((p, i) => kablo(`kPot${i}`, `M118 ${p.pin} H${p.don} V${p.serit} H${p.x} V${POT_Y + 24}`, p.renk)).join('')}
+      ${kablo('kUlt', 'M118 150 H575 V190', '#ab47bc')}
+      ${kablo('kRole', 'M118 70 H600', '#ff7043')}
+      ${kablo('kServo', 'M118 92 H380 V138 H600', '#ec407a')}
+      <g id="pico">
+        <rect x="30" y="40" width="96" height="220" rx="6" fill="#1d6b45" stroke="#2f8a5c"/>
+        <rect x="62" y="30" width="32" height="16" rx="3" fill="#b9c2cc"/>
+        ${pinler.map((y) => `<circle cx="40" cy="${y}" r="2.6" fill="#d8c27a"/><circle cx="116" cy="${y}" r="2.6" fill="#d8c27a"/>`).join('')}
+        <rect x="56" y="120" width="44" height="44" rx="3" fill="#20262f"/>
+        <text x="78" y="146" text-anchor="middle" style="fill:#b9c2cc;font-size:9px">RP2040</text>
+        <circle id="picoLed" cx="78" cy="72" r="4" fill="#2a3a2f"/>
+        <text x="78" y="282" text-anchor="middle" class="baslik">Raspberry Pi Pico</text>
+      </g>
+      ${POTLAR.map((p, i) => `
+        <g>
+          <text x="${p.x}" y="176" text-anchor="middle" class="baslik">${p.ad}</text>
+          <text id="potV${i}" x="${p.x}" y="193" text-anchor="middle" class="deger">—</text>
+          <circle cx="${p.x}" cy="${POT_Y}" r="24" fill="#1b2433" stroke="#3a4a63"/>
+          <circle id="potHata${i}" cx="${p.x}" cy="${POT_Y}" r="29" fill="none" stroke="#ff5f57" stroke-width="2" opacity="0"/>
+          <g id="pot${i}" transform="rotate(-135 ${p.x} ${POT_Y})">
+            <circle cx="${p.x}" cy="${POT_Y}" r="15" fill="#2d3b52"/>
+            <line x1="${p.x}" y1="${POT_Y}" x2="${p.x}" y2="${POT_Y - 13}" stroke="#e8edf6" stroke-width="3" stroke-linecap="round"/>
+          </g>
+        </g>`).join('')}
+      <g>
+        <rect x="520" y="190" width="110" height="50" rx="4" fill="#1f4f9e"/>
+        <circle cx="550" cy="215" r="17" fill="#c8ced8" stroke="#8a93a3"/><circle cx="550" cy="215" r="10" fill="#39404d"/>
+        <circle cx="600" cy="215" r="17" fill="#c8ced8" stroke="#8a93a3"/><circle cx="600" cy="215" r="10" fill="#39404d"/>
+        <text x="575" y="260" text-anchor="middle" class="baslik">HC-SR04 · Derinlik</text>
+        <text id="ultV" x="575" y="277" text-anchor="middle" class="deger">—</text>
+      </g>
+      <g>
+        <text x="600" y="18" class="baslik">Röle → pompa</text>
+        <text id="roleV" x="600" y="35" class="deger">—</text>
+        <rect x="600" y="44" width="150" height="54" rx="4" fill="#b8322f"/>
+        <rect x="650" y="50" width="56" height="42" rx="3" fill="#2a5fd0"/>
+        <text x="678" y="75" text-anchor="middle" style="fill:#e8edf6;font-size:9px">RELAY</text>
+        <circle id="roleLed" cx="624" cy="60" r="5" fill="#4a1d1d"/>
+        <rect id="roleHata" x="596" y="40" width="158" height="62" rx="6" fill="none" stroke="#ff5f57" stroke-width="2" opacity="0"/>
+      </g>
+      <g>
+        <rect x="600" y="118" width="80" height="40" rx="4" fill="#233a6b"/>
+        <rect id="servoHata" x="596" y="114" width="88" height="48" rx="6" fill="none" stroke="#ff5f57" stroke-width="2" opacity="0"/>
+        <g id="servoKol" transform="rotate(0 652 138)">
+          <rect x="648" y="134" width="34" height="8" rx="4" fill="#e8edf6"/>
+        </g>
+        <circle cx="652" cy="138" r="8" fill="#e8edf6"/>
+        <text x="694" y="134" class="baslik">Servo</text>
+        <text id="servoV" x="694" y="151" class="deger">—</text>
+      </g>
+      <g class="ortu" id="semaOrtu" opacity="0">
+        <rect x="0" y="0" width="760" height="300" rx="8"/>
+        <text id="semaOrtuYazi" x="380" y="155" text-anchor="middle">Bu denizde devre kurulu değil</text>
+      </g>`;
+  }
+
+  function semaGuncelle(k) {
+    const yok = !k.devreVar(), guc = k.arizaVar('guc'), sens = k.arizaVar('sensor'), akt = k.arizaVar('aktuator');
+    $('semaOrtu').setAttribute('opacity', yok ? '1' : '0');
+    $('semaOrtuYazi').textContent = 'Bu senaryoda denizde devre yok: ölçüm ve müdahale yapılmıyor';
+    $('pico').setAttribute('opacity', guc ? '0.35' : '1');
+    const o = k.okuma;
+    POTLAR.forEach((p, i) => {
+      const v = o ? o[p.alan] : null;
+      const aci = v === null ? -135 : -135 + 270 * clamp((v - p.min) / (p.max - p.min), 0, 1);
+      $(`pot${i}`).setAttribute('transform', `rotate(${aci.toFixed(1)} ${p.x} ${POT_Y})`);
+      $(`potV${i}`).textContent = v === null ? '—' : `${v.toFixed(1)} ${p.birim}${i === 2 && sens ? ' · takılı' : ''}`;
+      $(`potHata${i}`).setAttribute('opacity', i === 2 && sens ? '1' : '0');
+    });
+    $('ultV').textContent = o ? `${o.derinlik.toFixed(1)} cm` : '—';
+    // 100 ms sıralı okuma: kablolar sırayla vurgulanır
+    const sira = guc || yok ? -1 : Math.floor(performance.now() / 350) % 4;
+    ['kPot0', 'kPot1', 'kPot2', 'kUlt'].forEach((id, i) => $(id).classList.toggle('okunuyor', i === sira));
+    $('kRole').classList.toggle('okunuyor', k.pompa);
+    $('kServo').classList.toggle('okunuyor', k.vana);
+    if (k.raporNo !== semaRapor) { semaRapor = k.raporNo; semaFlas = performance.now(); }
+    const flas = !guc && !yok && performance.now() - semaFlas < 250;
+    $('picoLed').setAttribute('fill', flas ? '#7dff9a' : '#2a3a2f');
+    $('roleLed').setAttribute('fill', k.pompa ? '#ff4d4d' : '#4a1d1d');
+    $('roleHata').setAttribute('opacity', akt ? '1' : '0');
+    $('servoHata').setAttribute('opacity', akt ? '1' : '0');
+    $('roleV').textContent = akt ? 'arızalı' : k.pompa ? 'AÇIK' : 'kapalı';
+    $('servoV').textContent = akt ? 'arızalı' : k.vana ? '90°' : '0°';
+    $('roleV').setAttribute('class', akt ? 'deger hata' : 'deger');
+    $('servoV').setAttribute('class', akt ? 'deger hata' : 'deger');
+    $('servoKol').setAttribute('transform', `rotate(${k.vana ? 90 : 0} 652 138)`);
+    const metin = yok ? 'Devre yok' : guc ? 'Güç yok · Pico kapalı' : {
+      stabil: 'Ekosistem stabil · üniteler beklemede', uyari: 'Ötrofikasyon uyarısı · izleniyor',
+      dogrulama: `Trend doğrulanıyor · ${k.trend.toFixed(1)} gün`, acil: akt ? 'ACİL DURUM · komut gitti, röle ve servo yanıt vermiyor' : 'ACİL DURUM · röle ve servo tetiklendi', kapali: 'Kapalı',
+    }[k.durum];
+    $('semaDurum').textContent = `main.py · ${metin}`;
+    $('semaDurum').className = `cip ${yok ? '' : k.durum === 'acil' || guc ? 'kritik' : k.durum === 'stabil' ? 'iyi' : 'uyari'}`;
+    $('semaOdak').textContent = `Wokwi · ${odakAd()} · ${k.istasyon.id}`;
   }
 
   // ------------------------------------------------------------------ Kontroller
@@ -1417,15 +1675,76 @@
   });
 
   function ayarYaz() {
+    const d = DENIZLER[durum.deniz];
     $('sicaklikAyar').value = ENV.T; $('azotAyar').value = ENV.N;
     $('sicaklikCikti').textContent = `${ENV.T.toFixed(1)} °C`;
-    $('azotCikti').textContent = `${ENV.N.toFixed(0)} mg/L`;
+    $('azotCikti').textContent = `${ENV.N.toFixed(1)} µmol/L`;
+    $('tuzCikti').textContent = `${String(ENV.S).replace('.', ',')} psu`;
+    $('azotNot').textContent = `Eşik ${ESIK.AZOT} µmol/L. ${d.istasyon.ad} için seçilen yük ${String(d.N).replace('.', ',')} µmol/L.`;
   }
   $('sicaklikAyar').addEventListener('input', (e) => { ENV.T = +e.target.value; ayarYaz(); });
   $('azotAyar').addEventListener('input', (e) => { ENV.N = +e.target.value; ayarYaz(); });
-  document.querySelectorAll('#hazirlar button').forEach((b) => b.addEventListener('click', () => {
-    ENV.T = +b.dataset.t; ENV.N = +b.dataset.n; ayarYaz(); sifirla(true);
-  }));
+
+  // ------------------------------------------------------------------ Deniz seçimi
+  function denizUygula() {
+    const d = DENIZLER[durum.deniz];
+    Object.assign(ENV, { T: d.sst[durum.ay], N: d.N, S: d.S, su: d.su, istasyon: d.istasyon });
+    $('kDeniz').textContent = d.ad;
+    $('kIstasyon').textContent = `${d.istasyon.id} · ${d.istasyon.ad}`;
+    $('kKonum').textContent = d.istasyon.konum;
+    $('denizAyEtiket').textContent = `${AYLAR[durum.ay]} koşulları`;
+    $('grafikBaslik').textContent = `Müsilaj birikimi: ${d.istasyon.ad}, ${AYLAR[durum.ay].toLocaleLowerCase('tr')}`;
+    ayarYaz();
+  }
+
+  // Seçilen ayda devresiz denizde 75 günde ne olacağını modelle önceden hesaplar
+  function riskHesapla(anahtar) {
+    const d = DENIZLER[anahtar];
+    const env = { T: d.sst[durum.ay], N: d.N, S: d.S, istasyon: d.istasyon };
+    const k = new Tank('yok'); k.reset(env); k.ilerle(SURE, env);
+    if (k.yuzeyGunu !== null) return ['kritik', `Devresiz: müsilaj ${Math.round(k.yuzeyGunu)}. günde yüzeyde`];
+    if (k.maxM >= 25) return ['uyari', `Devresiz: müsilaj askıda kalır (indeks ${k.maxM.toFixed(0)})`];
+    if (k.maxM >= 5) return ['uyari', 'Devresiz: dipte kuluçka, yüzeye çıkmaz'];
+    return ['iyi', 'Bu koşullarda müsilaj oluşmaz'];
+  }
+
+  function denizKartlari() {
+    const liste = $('denizListe');
+    liste.innerHTML = Object.entries(DENIZLER).map(([anahtar, d]) => {
+      const r = riskHesapla(anahtar);
+      return `<button type="button" class="deniz" role="radio" aria-checked="${anahtar === durum.deniz}" data-deniz="${anahtar}">
+        <span class="serit" style="background:${d.serit}"></span>
+        <h3>${d.ad}</h3>
+        <span class="ist">${d.istasyon.ad} · ${d.istasyon.id}</span>
+        <span class="deger">${AYLAR[durum.ay]} ${String(d.sst[durum.ay]).replace('.', ',')} °C · ÇAİ ${String(d.N).replace('.', ',')} µmol/L · ${String(d.S).replace('.', ',')} psu</span>
+        <span class="risk ${r[0]}">${r[1]}</span>
+      </button>`;
+    }).join('');
+    liste.querySelectorAll('.deniz').forEach((b) => b.addEventListener('click', () => {
+      durum.deniz = b.dataset.deniz;
+      denizKartlari(); denizUygula(); sifirla(true);
+      try { localStorage.setItem('mk-deniz', durum.deniz); } catch (e) { /* depolama yok */ }
+    }));
+  }
+
+  $('aySecim').innerHTML = AYLAR.map((a, i) => `<option value="${i}">${a}</option>`).join('');
+  $('aySecim').addEventListener('change', (e) => { durum.ay = +e.target.value; denizKartlari(); denizUygula(); sifirla(true); });
+  $('olcumeDon').addEventListener('click', () => { denizUygula(); sifirla(true); });
+
+  function gercekTablo() {
+    const anahtarlar = Object.keys(DENIZLER);
+    const satir = (baslik, f) => `<tr><th scope="row">${baslik}</th>${anahtarlar.map((a) => `<td>${f(DENIZLER[a])}</td>`).join('')}</tr>`;
+    $('gercekTablo').innerHTML = `<thead><tr><th></th>${anahtarlar.map((a) => `<th>${DENIZLER[a].ad}</th>`).join('')}</tr></thead><tbody>
+      ${satir('İstasyon', (d) => `${d.istasyon.ad}<br><small>${d.istasyon.id} · ${d.istasyon.konum}</small>`)}
+      ${satir('Tuzluluk', (d) => d.gercek.tuzluluk)}
+      ${satir('Yüzey suyu sıcaklığı', (d) => d.gercek.sicaklik)}
+      ${satir('Çözünmüş oksijen', (d) => d.gercek.oksijen)}
+      ${satir('Azot', (d) => d.gercek.azot)}
+      ${satir('Simülasyondaki ÇAİ yükü', (d) => `${String(d.N).replace('.', ',')} µmol/L`)}
+      ${satir('Müsilaj geçmişi', (d) => d.gercek.musilaj)}
+      ${satir('Kaynaklar', (d) => `<ul>${d.kaynak.map(([ad, url]) => `<li><a href="${url}" target="_blank" rel="noopener">${ad}</a></li>`).join('')}</ul>`)}
+    </tbody>`;
+  }
 
   // ------------------------------------------------------------------ Döngü
   let son = performance.now(), zaman = 0, uiSure = 0;
@@ -1448,7 +1767,12 @@
     requestAnimationFrame(kare);
   }
 
-  ayarYaz();
+  try { const d = localStorage.getItem('mk-deniz'); if (d && DENIZLER[d]) durum.deniz = d; } catch (e) { /* depolama yok */ }
+  $('aySecim').value = String(durum.ay);
+  denizKartlari();
+  denizUygula();
+  gercekTablo();
+  semaKur();
   sifirla(true);
   let ilkSekme = 'karsi';
   try { ilkSekme = localStorage.getItem('mk-sekme') === 'tek' ? 'tek' : 'karsi'; } catch (e) { /* depolama yok */ }
