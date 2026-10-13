@@ -1,0 +1,1458 @@
+<title>Mavi Kalkan Simülatörü</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  /* Düzen: sunumdaki gece-mavisi kimlik. Üstte başlık, ortada canlı deniz kesitleri + sağda devre paneli, altta seri monitör. */
+  :root {
+    --gece: #04070d;
+    --panel: #0a111c;
+    --panel2: #101a29;
+    --cizgi: #22314a;
+    --ink: #e8edf6;
+    --soluk: #94a2b9;
+    --sonuk: #5d6b82;
+    --mavi: #5b84ff;
+    --mavi-acik: #9db5ff;
+    --mavi-zemin: rgba(91, 132, 255, 0.14);
+    --salya: #e0cf9f;
+    --iyi: #46c98b;
+    --uyari: #f0b43c;
+    --kritik: #ff5f57;
+    --f-baslik: "Cormorant Garamond", "Iowan Old Style", Georgia, serif;
+    --f-govde: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --f-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+    --r: 6px;
+    color-scheme: dark;
+  }
+  html { background: var(--gece); }
+  body { background: var(--gece); color: var(--ink); font-family: var(--f-govde); font-size: 15px; line-height: 1.5; }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  button, select, input { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--mavi-acik); outline-offset: 2px; }
+
+  .sar { max-width: 1340px; margin: 0 auto; padding-inline: clamp(16px, 3vw, 36px); padding-block: 22px 56px; display: grid; gap: 22px; }
+
+  .kas { font-family: var(--f-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--soluk); }
+
+  /* Başlık */
+  .bas { display: grid; gap: 14px; border-bottom: 1px solid var(--cizgi); padding-bottom: 22px; }
+  .bas-ust { display: flex; align-items: center; gap: 16px; }
+  .bas-ust .cizgi { flex: 1; height: 1px; background: var(--cizgi); }
+  .bas-ana { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 360px); gap: 28px; align-items: end; }
+  h1 { font-family: var(--f-baslik); font-weight: 600; font-size: clamp(44px, 7vw, 84px); line-height: 0.92; letter-spacing: 0.01em; margin: 0; text-transform: uppercase; }
+  .slogan { font-family: var(--f-baslik); font-size: clamp(20px, 2.4vw, 27px); color: var(--mavi-acik); margin: 8px 0 10px; }
+  .giris { max-width: 64ch; color: var(--soluk); margin: 0; text-wrap: pretty; }
+  .kunye { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; margin: 0; font-size: 13px; }
+  .kunye dt { font-family: var(--f-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--sonuk); padding-top: 2px; }
+  .kunye dd { margin: 0; font-variant-numeric: tabular-nums; }
+
+  /* Kontrol çubuğu */
+  .cubuk { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; justify-content: space-between; }
+  .sekmeler { display: flex; gap: 4px; padding: 4px; background: var(--panel); border: 1px solid var(--cizgi); border-radius: var(--r); }
+  .sekmeler button { border: 0; background: transparent; padding: 8px 14px; border-radius: 4px; cursor: pointer; color: var(--soluk); font-weight: 500; }
+  .sekmeler button[aria-selected="true"] { background: var(--mavi); color: #fff; }
+  .oynat { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+  .dug { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: var(--r); border: 1px solid var(--cizgi); background: var(--panel); cursor: pointer; font-weight: 500; }
+  .dug:hover { border-color: var(--mavi); }
+  .dug.ana { background: var(--mavi); border-color: var(--mavi); color: #fff; }
+  .dug svg { width: 14px; height: 14px; fill: currentColor; }
+  .hizlar { display: flex; border: 1px solid var(--cizgi); border-radius: var(--r); overflow: hidden; }
+  .hizlar button { border: 0; background: var(--panel); padding: 8px 11px; cursor: pointer; font-family: var(--f-mono); font-size: 12px; color: var(--soluk); }
+  .hizlar button + button { border-left: 1px solid var(--cizgi); }
+  .hizlar button[aria-pressed="true"] { background: var(--mavi-zemin); color: var(--mavi-acik); }
+  .gun { display: grid; gap: 4px; min-width: 150px; }
+  .gun-yazi { font-family: var(--f-mono); font-size: 13px; font-variant-numeric: tabular-nums; }
+  .gun-yazi b { font-weight: 500; color: var(--ink); }
+  .gun-yazi span { color: var(--sonuk); }
+  .ilerleme { height: 3px; background: var(--cizgi); border-radius: 2px; overflow: hidden; }
+  .ilerleme i { display: block; height: 100%; width: 0; background: var(--mavi); }
+
+  /* Ana yerleşim */
+  .yerlesim { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 22px; align-items: start; }
+  .sahne-alani { display: grid; gap: 18px; min-width: 0; }
+
+  .kesit { position: relative; border-radius: var(--r); overflow: hidden; border: 1px solid var(--cizgi); background: #050b16; }
+  .kesit canvas { display: block; width: 100%; height: 100%; }
+  .kesit.genis { aspect-ratio: 16 / 9; }
+  .kesit-ust { position: absolute; inset: 10px 10px auto 10px; display: flex; flex-wrap: wrap; gap: 6px; pointer-events: none; }
+  .kesit-alt { position: absolute; inset: auto 10px 10px 10px; display: flex; flex-wrap: wrap; gap: 6px; pointer-events: none; }
+
+  .cip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px; border-radius: 999px; font-family: var(--f-mono); font-size: 11px; letter-spacing: 0.04em; background: rgba(4, 7, 13, 0.72); border: 1px solid var(--cizgi); color: var(--ink); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .cip::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--sonuk); }
+  .cip.duz::before { display: none; }
+  .cip.iyi::before { background: var(--iyi); }
+  .cip.uyari::before { background: var(--uyari); }
+  .cip.kritik::before { background: var(--kritik); }
+  .cip.aktif::before { background: var(--mavi); }
+  .cip.iyi { border-color: color-mix(in srgb, var(--iyi) 45%, transparent); }
+  .cip.uyari { border-color: color-mix(in srgb, var(--uyari) 45%, transparent); }
+  .cip.kritik { border-color: color-mix(in srgb, var(--kritik) 55%, transparent); }
+  .cip.aktif { border-color: color-mix(in srgb, var(--mavi) 55%, transparent); }
+
+  /* Karşılaştırma */
+  .uclu { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+  .kart { display: grid; gap: 8px; padding: 10px; border-radius: var(--r); border: 1px solid var(--cizgi); background: var(--panel); cursor: pointer; text-align: left; min-width: 0; }
+  .kart[aria-pressed="true"] { border-color: var(--mavi); box-shadow: 0 0 0 1px var(--mavi) inset; }
+  .kart-bas { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .kart-bas h3 { margin: 0; font-family: var(--f-baslik); font-size: 22px; font-weight: 600; line-height: 1.1; }
+  .kart .kesit { aspect-ratio: 4 / 3; }
+  .kart-alt { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+  .olcu { display: grid; gap: 1px; }
+  .olcu span { font-family: var(--f-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--sonuk); }
+  .olcu b { font-family: var(--f-mono); font-weight: 500; font-size: 15px; font-variant-numeric: tabular-nums; }
+  .hukum { justify-self: start; }
+
+  .blok { border: 1px solid var(--cizgi); background: var(--panel); border-radius: var(--r); padding: 16px; display: grid; gap: 12px; min-width: 0; align-content: start; }
+  .blok-bas { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px 16px; }
+  .blok h2 { margin: 0; font-family: var(--f-baslik); font-weight: 600; font-size: 26px; line-height: 1.1; text-wrap: balance; }
+  .lejant { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12.5px; color: var(--soluk); }
+  .lejant i { display: inline-block; width: 14px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 6px; }
+  .grafik { position: relative; height: 240px; }
+  .grafik canvas { width: 100%; height: 100%; display: block; }
+
+  .sonuc { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 16px; }
+  .sonuc ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+  .sonuc li { display: grid; grid-template-columns: 4px 1fr; gap: 12px; }
+  .sonuc li::before { content: ""; border-radius: 2px; background: var(--sonuk); }
+  .sonuc li.iyi::before { background: var(--iyi); }
+  .sonuc li.uyari::before { background: var(--uyari); }
+  .sonuc li.kritik::before { background: var(--kritik); }
+  .sonuc li.aktif::before { background: var(--mavi); }
+  .sonuc li b { display: block; font-weight: 600; }
+  .sonuc li p { margin: 0; color: var(--soluk); font-size: 14px; }
+  .kpi { display: grid; gap: 10px; align-content: start; }
+  .kpi > div { background: var(--panel2); border-radius: var(--r); padding: 12px 14px; display: grid; gap: 2px; }
+  .kpi strong { font-family: var(--f-baslik); font-weight: 600; font-size: 34px; line-height: 1; font-variant-numeric: lining-nums tabular-nums; }
+  .kpi p { margin: 0; font-size: 13px; color: var(--soluk); }
+
+  /* Tek senaryo göstergeleri */
+  .gostergeler { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+  .gosterge { background: var(--panel); border: 1px solid var(--cizgi); border-radius: var(--r); padding: 12px; display: grid; gap: 6px; min-width: 0; }
+  .gosterge-bas { display: flex; justify-content: space-between; gap: 6px; align-items: baseline; }
+  .gosterge-deger { font-family: var(--f-mono); font-size: 22px; font-weight: 500; font-variant-numeric: tabular-nums; }
+  .gosterge-deger small { font-size: 12px; color: var(--soluk); margin-left: 3px; }
+  .gosterge canvas { width: 100%; height: 46px; display: block; }
+  .gosterge-not { font-size: 12px; color: var(--soluk); }
+  .gosterge-not.uyari { color: var(--uyari); }
+  .gosterge-not.kritik { color: var(--kritik); }
+
+  /* Yan panel */
+  .yan { display: grid; gap: 14px; min-width: 0; }
+  .yan .blok { padding: 14px; gap: 10px; }
+  .yan h2 { font-size: 22px; }
+  .secim { display: grid; gap: 6px; }
+  .secim label { display: grid; grid-template-columns: 18px 1fr; gap: 10px; align-items: start; padding: 9px 10px; border: 1px solid var(--cizgi); border-radius: var(--r); cursor: pointer; background: var(--panel2); }
+  .secim label:has(input:checked) { border-color: var(--mavi); background: var(--mavi-zemin); }
+  .secim input { accent-color: var(--mavi); margin: 3px 0 0; }
+  .secim b { display: block; font-weight: 600; font-size: 14px; }
+  .secim span { display: block; font-size: 12.5px; color: var(--soluk); }
+  .alan { display: grid; gap: 6px; }
+  .alan-bas { display: flex; justify-content: space-between; gap: 8px; font-size: 13.5px; }
+  .alan-bas output { font-family: var(--f-mono); font-variant-numeric: tabular-nums; color: var(--mavi-acik); }
+  .alan small { color: var(--sonuk); font-size: 12px; }
+  input[type="range"] { width: 100%; accent-color: var(--mavi); }
+  select { width: 100%; padding: 8px 10px; border-radius: var(--r); border: 1px solid var(--cizgi); background: var(--panel2); }
+  .hazirlar { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .hazirlar button { text-align: left; padding: 8px 10px; border-radius: var(--r); border: 1px solid var(--cizgi); background: var(--panel2); cursor: pointer; display: grid; gap: 1px; }
+  .hazirlar button:hover { border-color: var(--mavi); }
+  .hazirlar b { font-size: 13px; font-weight: 600; }
+  .hazirlar span { font-family: var(--f-mono); font-size: 11px; color: var(--soluk); }
+  .not { font-size: 12.5px; color: var(--soluk); margin: 0; }
+
+  .bilesen { list-style: none; margin: 0; padding: 0; display: grid; }
+  .bilesen li { display: grid; grid-template-columns: 8px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 7px 0; border-top: 1px solid var(--cizgi); }
+  .bilesen li:first-child { border-top: 0; }
+  .bilesen .nokta { width: 8px; height: 8px; border-radius: 50%; background: var(--sonuk); }
+  .bilesen .iyi .nokta { background: var(--iyi); }
+  .bilesen .uyari .nokta { background: var(--uyari); }
+  .bilesen .kritik .nokta { background: var(--kritik); }
+  .bilesen .aktif .nokta { background: var(--mavi); box-shadow: 0 0 0 3px var(--mavi-zemin); }
+  .bilesen .kapali .nokta { background: transparent; border: 1px solid var(--sonuk); }
+  .bilesen b { display: block; font-size: 13px; font-weight: 500; }
+  .bilesen small { display: block; font-size: 11.5px; color: var(--sonuk); }
+  .bilesen em { font-style: normal; font-family: var(--f-mono); font-size: 12px; text-align: right; color: var(--soluk); font-variant-numeric: tabular-nums; }
+  .bilesen .kritik em { color: var(--kritik); }
+  .bilesen .aktif em { color: var(--mavi-acik); }
+  .bilesen .uyari em { color: var(--uyari); }
+
+  /* Konsol */
+  .konsol { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); gap: 22px; }
+  .terminal { background: #02050a; border: 1px solid var(--cizgi); border-radius: var(--r); height: 340px; overflow: auto; padding: 10px 12px; font-family: var(--f-mono); font-size: 12px; line-height: 1.55; }
+  .terminal div { white-space: pre-wrap; word-break: break-word; }
+  .terminal .z { color: var(--sonuk); margin-right: 8px; }
+  .terminal .rapor { color: #c9d4e6; }
+  .terminal .uyari { color: var(--uyari); }
+  .terminal .acil { color: var(--kritik); }
+  .terminal .iyi { color: var(--iyi); }
+  .terminal .bilgi { color: var(--mavi-acik); }
+  .terminal .hata { color: #fff; background: color-mix(in srgb, var(--kritik) 35%, transparent); }
+  .terminal .bos { color: var(--sonuk); }
+  .olaylar { list-style: none; margin: 0; padding: 0; display: grid; align-content: start; gap: 10px; max-height: 340px; overflow: auto; }
+  .olaylar li { display: grid; grid-template-columns: 64px 1fr; gap: 10px; font-size: 13.5px; }
+  .olaylar time { font-family: var(--f-mono); font-size: 12px; color: var(--sonuk); padding-top: 1px; }
+  .olaylar .acil { color: var(--kritik); }
+  .olaylar .kritik { color: var(--salya); }
+  .olaylar .iyi { color: var(--iyi); }
+  .olaylar .bilgi { color: var(--mavi-acik); }
+
+  /* Yöntem */
+  .yontem { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; }
+  .yontem article { border-top: 2px solid var(--mavi); padding-top: 10px; display: grid; gap: 4px; align-content: start; }
+  .yontem .no { font-family: var(--f-mono); font-size: 13px; color: var(--mavi-acik); }
+  .yontem h3 { margin: 0; font-family: var(--f-baslik); font-size: 22px; font-weight: 600; }
+  .yontem p { margin: 0; font-size: 13.5px; color: var(--soluk); }
+  .esleme { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  .esleme th, .esleme td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--cizgi); vertical-align: top; }
+  .esleme th { font-family: var(--f-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--sonuk); font-weight: 400; }
+  .esleme code { font-family: var(--f-mono); font-size: 12.5px; color: var(--mavi-acik); }
+  .tablo-kap { overflow-x: auto; }
+
+  footer { border-top: 1px solid var(--cizgi); padding-top: 14px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 20px; }
+
+  @media (max-width: 1060px) {
+    .yerlesim { grid-template-columns: minmax(0, 1fr); }
+    .yan { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+    .yontem { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 820px) {
+    .bas-ana { grid-template-columns: minmax(0, 1fr); }
+    .uclu { grid-template-columns: minmax(0, 1fr); }
+    .sonuc, .konsol { grid-template-columns: minmax(0, 1fr); }
+    .gostergeler { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .kesit.genis { aspect-ratio: 4 / 3; }
+  }
+  @media (max-width: 520px) {
+    .yontem { grid-template-columns: minmax(0, 1fr); }
+    .bas-ust .cizgi, .bas-ust .sag { display: none; }
+    .gun { min-width: 0; flex: 1; }
+  }
+</style>
+
+<div class="sar" lang="tr">
+  <header class="bas">
+    <div class="bas-ust kas"><span>Erken uyarı &amp; otonom müdahale</span><i class="cizgi"></i><span class="sag">Deniz savunma sistemi · simülasyon</span></div>
+    <div class="bas-ana">
+      <div>
+        <h1>Mavi Kalkan</h1>
+        <p class="slogan">Müsilaj yüzeye çıkmadan önce.</p>
+        <p class="giris">Wokwi devresinde su değerlerini potansiyometreyle veriyorduk. Burada değerler canlı bir deniz modelinden geliyor. Aynı Marmara suyunda üç durumu yan yana çalıştırın: devre yokken müsilaj oluşur, devre çalışırken kuluçkada yakalanıp yok edilir, devre arızalanınca yine oluşur.</p>
+      </div>
+      <dl class="kunye">
+        <dt>İstasyon</dt><dd>#NODE-MARMARA-04</dd>
+        <dt>Konum</dt><dd>40.7012° K, 29.0521° D</dd>
+        <dt>Eşikler</dt><dd>Sıcaklık &gt; 22 °C · Azot &gt; 60 mg/L · ÇO &lt; 4 mg/L</dd>
+        <dt>Doğrulama</dt><dd>3 günlük trend filtresi</dd>
+        <dt>Takım</dt><dd>Mavi Kalkan · Robotekno Koleji</dd>
+      </dl>
+    </div>
+  </header>
+
+  <div class="cubuk">
+    <div class="sekmeler" role="tablist" aria-label="Görünüm">
+      <button role="tab" id="sekmeKarsi" aria-selected="true" aria-controls="gorunumKarsi">Karşılaştırmalı deney</button>
+      <button role="tab" id="sekmeTek" aria-selected="false" aria-controls="gorunumTek">Tek senaryo</button>
+    </div>
+    <div class="oynat">
+      <button class="dug ana" id="oynatDug" type="button"><svg viewBox="0 0 16 16" aria-hidden="true"><path id="oynatIkon" d="M4 2h3v12H4zM9 2h3v12H9z"/></svg><span id="oynatYazi">Durdur</span></button>
+      <button class="dug" id="sifirlaDug" type="button"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2a6 6 0 1 1-5.6 3.8l1.8.7A4 4 0 1 0 8 4v2.5L4.5 3.2 8 0z"/></svg>Baştan başlat</button>
+      <div class="hizlar" role="group" aria-label="Simülasyon hızı">
+        <button type="button" data-hiz="1" aria-pressed="false">1×</button>
+        <button type="button" data-hiz="2" aria-pressed="true">2×</button>
+        <button type="button" data-hiz="4" aria-pressed="false">4×</button>
+        <button type="button" data-hiz="8" aria-pressed="false">8×</button>
+      </div>
+      <div class="gun">
+        <div class="gun-yazi"><b id="gunYazi">Gün 0.0</b> <span>/ 75 günlük deney</span></div>
+        <div class="ilerleme"><i id="gunCubuk"></i></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="yerlesim">
+    <div class="sahne-alani">
+      <section id="gorunumKarsi" role="tabpanel" aria-labelledby="sekmeKarsi" class="sahne-alani">
+        <div class="uclu" id="kartlar"></div>
+
+        <div class="blok">
+          <div class="blok-bas">
+            <h2>Müsilaj birikimi: aynı deniz, üç durum</h2>
+            <div class="lejant">
+              <span><i style="background: var(--kritik)"></i>Devre yok</span>
+              <span><i style="background: var(--mavi)"></i>Devre çalışıyor</span>
+              <span><i style="background: repeating-linear-gradient(90deg, var(--uyari) 0 5px, transparent 5px 8px)"></i>Devre arızalı</span>
+            </div>
+          </div>
+          <div class="grafik"><canvas id="karsiGrafik" aria-label="Üç senaryonun müsilaj indeksi zaman grafiği"></canvas></div>
+        </div>
+
+        <div class="blok">
+          <div class="blok-bas"><h2>Deney sonucu</h2><span class="kas" id="sonucDurum">Deney sürüyor</span></div>
+          <div class="sonuc">
+            <ul id="sonucListe"></ul>
+            <div class="kpi">
+              <div><span class="kas">Erken uyarı süresi</span><strong id="kpiUyari">—</strong><p id="kpiUyariNot">Mavi Kalkan uyarısı ile devresiz denizde müsilajın yüzeye çıkışı arasındaki fark.</p></div>
+              <div><span class="kas">Müdahale maliyeti</span><strong>450 bin TL</strong><p id="kpiMaliyet">Yüzeydeki krize müdahale 2,5–15 milyon TL tutar. Erken müdahalede USV yeterli; doğrudan tasarruf %80'in üzerinde.</p></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="gorunumTek" role="tabpanel" aria-labelledby="sekmeTek" class="sahne-alani" hidden>
+        <div class="kesit genis">
+          <canvas id="tekSahne" aria-label="Deniz kesiti: şamandıra, sensör hattı, USV ve müsilaj durumu"></canvas>
+          <div class="kesit-ust" id="tekUst"></div>
+          <div class="kesit-alt" id="tekAlt"></div>
+        </div>
+        <div class="gostergeler" id="gostergeler"></div>
+      </section>
+    </div>
+
+    <aside class="yan">
+      <section class="blok" id="devreBlok">
+        <div class="blok-bas"><h2>Devre</h2><span class="kas" id="devreEtiket">Tek senaryo</span></div>
+        <div class="secim" id="modSecim" role="radiogroup" aria-label="Devre durumu">
+          <label><input type="radio" name="mod" id="modYok" value="yok"><div><b>Devre yok</b><span>Denizde şamandıra ve USV yok. Doğal süreç işler.</span></div></label>
+          <label><input type="radio" name="mod" id="modCalisiyor" value="calisiyor" checked><div><b>Devre çalışıyor</b><span>Sensörler ölçer, trend doğrulanır, USV müdahale eder.</span></div></label>
+          <label><input type="radio" name="mod" id="modArizali" value="arizali"><div><b>Devre arızalı</b><span>Aşağıda seçilen arıza devreyi işlevsiz bırakır.</span></div></label>
+        </div>
+        <p class="not" id="karsiNot" hidden>Üç deniz kesiti aynı koşullarda yan yana çalışır. Terminali ve bileşen listesini değiştirmek için bir kesite tıklayın.</p>
+        <div class="alan">
+          <label for="arizaSecim" class="alan-bas"><span>Arıza türü</span></label>
+          <select id="arizaSecim">
+            <option value="sensor">ÇO sensörü takılı kaldı (hep 7.2 mg/L okuyor)</option>
+            <option value="aktuator">USV, röle ve servo yanıt vermiyor</option>
+            <option value="guc">Şamandırada güç ve iletişim kesildi</option>
+          </select>
+          <small>Simülasyon sürerken modu değiştirebilirsiniz. Örneğin devre çalışırken arızayı başlatın ve müsilajın büyümeye başladığını izleyin.</small>
+        </div>
+      </section>
+
+      <section class="blok">
+        <div class="blok-bas"><h2>Deniz koşulları</h2></div>
+        <div class="alan">
+          <div class="alan-bas"><label for="sicaklikAyar">Su sıcaklığı</label><output id="sicaklikCikti" for="sicaklikAyar">25.5 °C</output></div>
+          <input type="range" id="sicaklikAyar" min="10" max="32" step="0.1" value="25.5">
+          <small>Mevsim. Eşik 22 °C.</small>
+        </div>
+        <div class="alan">
+          <div class="alan-bas"><label for="azotAyar">Kıyıdan gelen azot yükü</label><output id="azotCikti" for="azotAyar">115 mg/L</output></div>
+          <input type="range" id="azotAyar" min="0" max="160" step="1" value="115">
+          <small>Atık su ve tarımsal akış. Eşik 60 mg/L. Çözünmüş oksijen modelden hesaplanır.</small>
+        </div>
+        <div class="hazirlar" id="hazirlar">
+          <button type="button" data-t="25.5" data-n="115"><b>Marmara 2021</b><span>25.5 °C · 115 mg/L</span></button>
+          <button type="button" data-t="28" data-n="140"><b>Sıcak yaz</b><span>28 °C · 140 mg/L</span></button>
+          <button type="button" data-t="23.9" data-n="100"><b>Wokwi değerleri</b><span>23.9 °C · 100 mg/L</span></button>
+          <button type="button" data-t="14" data-n="30"><b>Temiz kış</b><span>14 °C · 30 mg/L</span></button>
+        </div>
+        <p class="not">Hazır senaryo seçince deney baştan başlar. Kaydırıcılar çalışan deneyi anında etkiler.</p>
+      </section>
+
+      <section class="blok">
+        <div class="blok-bas"><h2>Bileşenler</h2><span class="kas" id="bilesenOdak">Devre çalışıyor</span></div>
+        <ul class="bilesen" id="bilesenListe"></ul>
+      </section>
+    </aside>
+  </div>
+
+  <section class="konsol">
+    <div class="blok">
+      <div class="blok-bas"><h2>Seri monitör</h2><span class="kas" id="terminalOdak">main.py · Devre çalışıyor</span></div>
+      <div class="terminal" id="terminal" role="log" aria-live="off"></div>
+    </div>
+    <div class="blok">
+      <div class="blok-bas"><h2>Önemli olaylar</h2></div>
+      <ul class="olaylar" id="olaylar"></ul>
+    </div>
+  </section>
+
+  <section class="blok">
+    <div class="blok-bas"><h2>Simülasyon projeyi nasıl modelliyor</h2><span class="kas">Kapsanamayan alanlarda algıla, erken müdahaleyi güçlendir</span></div>
+    <div class="yontem">
+      <article><span class="no">01</span><span class="kas">Derin sensör hattı</span><h3>IP68 şamandıra</h3><p>Sıcaklık, azot ve çözünmüş oksijen her yarım günde bir okunur. Fosfor ve klorofil de izlenir. Kamera yalnızca yüzeyi görür, bu yüzden kuluçkadaki müsilajı kaçırır.</p></article>
+      <article><span class="no">02</span><span class="kas">Wokwi ana döngüsü</span><h3>Eşik kontrolü</h3><p>Koşul main.py ile aynı: sıcaklık &gt; 22, azot &gt; 60 ve ÇO &lt; 4 ise acil durum. Yalnız biri aşılırsa ötrofikasyon uyarısı verilir.</p></article>
+      <article><span class="no">03</span><span class="kas">Doğrulama filtresi</span><h3>3 günlük trend</h3><p>Risk 3 gün kesintisiz sürerse kuluçka evresi doğrulanır. Geçici sapmalar sayaçtan düşer. Doğrulanmış bölgede yeniden tetikleme 1 gün sürer.</p></article>
+      <article><span class="no">04</span><span class="kas">Nokta atışı müdahale</span><h3>USV ve bakteri dozu</h3><p>AFAD'a GPS koordinatlı bildirim gider. USV-01 koordinata gelir, santrifüj filtre müsilajı emer, bakteri dozu azot ve fosforu tüketir.</p></article>
+    </div>
+    <div class="tablo-kap">
+      <table class="esleme">
+        <thead><tr><th>Wokwi devresi</th><th>Simülasyondaki karşılığı</th></tr></thead>
+        <tbody>
+          <tr><td>Potansiyometre 1, 2, 3</td><td>Deniz modelinin ürettiği sıcaklık, azot ve çözünmüş oksijen (küçük ölçüm gürültüsüyle)</td></tr>
+          <tr><td>HC-SR04 ultrasonik</td><td>Derinlik okuması, rapordaki <code>Derinlik: 15.0cm</code></td></tr>
+          <tr><td><code>role_pompa.value(1)</code></td><td>USV santrifüj filtre ve biyoremediasyon pompası: müsilajı emer, azotu giderir, suyu karıştırıp oksijen verir</td></tr>
+          <tr><td><code>vana_aci_ayarla(90)</code></td><td>Bakteri dozaj vanası: suya verilen bakteri müsilajı ve alg fazlasını parçalar</td></tr>
+          <tr><td><code>time.sleep(2)</code></td><td>Simülasyonda yarım günlük ölçüm periyodu</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="not">Model eğitim amaçlıdır. Katsayılar müsilaj oluşumunun bilinen koşullarını (sıcak, azotça zengin, oksijeni azalan durgun su) temsil edecek şekilde seçildi. Gerçek ölçümlerle kalibre edilmedi.</p>
+  </section>
+
+  <footer class="kas"><span>Mavi Kalkan · Robotekno Koleji</span><span>TYMM OB8 · Sürdürülebilirlik ve yeşil okul</span></footer>
+</div>
+
+<script>
+/* Mavi Kalkan — deniz ekosistemi + şamandıra/USV kontrol modeli.
+   Zaman birimi: gün. Hem tarayıcıda hem Node'da çalışır. */
+(function (root) {
+  const ESIK = { SICAKLIK: 22.0, AZOT: 60.0, OKSIJEN: 4.0 };
+  const KONTROL_PERIYODU = 0.5;   // gün: main.py döngüsündeki time.sleep(2)'nin simülasyon karşılığı
+  const TREND_GUN = 3;            // 3 günlük trend doğrulama filtresi
+  const TEKRAR_GUN = 1;          // doğrulanmış (izlemedeki) bölgede yeniden tetikleme süresi
+  const MUDAHALE_SURESI = 4;      // gün: doğrulanan krizde USV'nin bölgede kalma süresi
+  const USV_YOL_GUN = 0.6;        // gün: limandan şamandıra koordinatına seyir
+  const YUZEY_ESIGI = 55;         // müsilaj indeksi: bu değerin üstünde yüzeyde tabaka oluşur
+  const KONUM = '40.7012° K, 29.0521° D';
+
+  const esikGun = (k) => (k.ilkAlarmGunu === null ? TREND_GUN : TEKRAR_GUN);
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+  // Deniz suyunda doygun çözünmüş oksijen (tuzluluk düzeltmeli yaklaşık), mg/L
+  function doygunOksijen(T) {
+    return (14.6 - 0.41 * T + 0.0079 * T * T - 0.0000777 * T * T * T) * 0.82;
+  }
+
+  function evre(M) {
+    if (M < 5) return { kod: 'temiz', ad: 'Temiz su' };
+    if (M < 25) return { kod: 'kulucka', ad: 'Kuluçka evresi · dipte, gözle görülmez' };
+    if (M < YUZEY_ESIGI) return { kod: 'askida', ad: 'Su kolonunda askıda kümeler' };
+    return { kod: 'yuzey', ad: 'Yüzeyde müsilaj tabakası' };
+  }
+
+  class Tank {
+    constructor(mod, ariza) {
+      this.mod = mod;                  // 'yok' | 'calisiyor' | 'arizali'
+      this.ariza = ariza || 'sensor';  // 'guc' | 'sensor' | 'aktuator'
+      this.log = [];
+      this.olaylar = [];
+      this.gecmis = [];
+    }
+
+    reset(env) {
+      this.t = 0;
+      this.T = env.T - 1.5;
+      this.N = env.N * 0.85;
+      this.P = env.N / 18;       // fosfor, mg/L (azot yüküyle birlikte gelir)
+      this.A = 8;                // fitoplankton yoğunluğu (0–100) → klorofil
+      this.M = 0;                // müsilaj indeksi (0–100)
+      this.E = 0;                // suya verilen bakteri/enzim konsantrasyonu
+      this.DO = doygunOksijen(this.T);
+      this.derinlik = 15.0;
+      this.pompa = false;        // röle komutu → USV santrifüj/biyoremediasyon pompası
+      this.vana = false;         // servo komutu → bakteri dozaj vanası
+      this.usv = { durum: 'liman', ilerleme: 0 };
+      this.mudahale = 0;
+      this.trend = 0;
+      this.durum = this.devreVar() ? 'stabil' : 'kapali'; // stabil | uyari | dogrulama | acil | kapali
+      this.acilAktif = false;
+      this.raporNo = 1000;
+      this.sonrakiKontrol = 0;
+      this.okuma = null;
+      this.maxM = 0;
+      this.yuzeyGunu = null;
+      this.ilkSupheGunu = null;
+      this.ilkAlarmGunu = null;
+      this.pompaGun = 0;
+      this.temizlendi = false;
+      this.log = [];
+      this.olaylar = [];
+      this.gecmis = [];
+      this.sifirlamaNo = (this.sifirlamaNo || 0) + 1;
+      this.kaydet();
+    }
+
+    devreVar() { return this.mod !== 'yok'; }
+    arizaVar(tur) { return this.mod === 'arizali' && this.ariza === tur; }
+    klorofil() { return this.A * 0.25; }
+
+    yaz(satir, tur) {
+      this.seq = (this.seq || 0) + 1;
+      this.log.push({ id: this.seq, t: this.t, satir, tur: tur || 'normal' });
+      if (this.log.length > 400) this.log.splice(0, this.log.length - 400);
+    }
+
+    olay(metin, tur) {
+      this.olaylar.push({ t: this.t, metin, tur });
+    }
+
+    usvGorevde() { return this.usv.durum === 'gorevde'; }
+
+    // Fiziksel/biyolojik model — bir adım
+    fizik(dt, env) {
+      // USV seyri: komut varsa koordinata gider, yoksa limana döner
+      const komut = (this.pompa || this.vana) && this.devreVar();
+      if (komut) {
+        this.usv.ilerleme = Math.min(1, this.usv.ilerleme + dt / USV_YOL_GUN);
+        this.usv.durum = this.usv.ilerleme >= 1 ? 'gorevde' : 'yolda';
+      } else if (this.usv.ilerleme > 0) {
+        this.usv.ilerleme = Math.max(0, this.usv.ilerleme - dt / USV_YOL_GUN);
+        this.usv.durum = this.usv.ilerleme > 0 ? 'donuyor' : 'liman';
+      }
+      const filtre = this.pompa && this.usvGorevde();
+      const dozaj = this.vana && this.usvGorevde();
+
+      this.T += (env.T - this.T) * Math.min(1, 0.6 * dt);
+      // Kıyıdan gelen atık su: deniz, yük seviyesine doğru tekrar dolar
+      this.N += (env.N - this.N) * 0.15 * dt;
+      this.P += (env.N / 18 - this.P) * 0.15 * dt;
+
+      const fT = clamp((this.T - 17) / 7, 0, 1.6);
+      const fN = this.N / (this.N + 35);
+      const buyume = 0.9 * fT * fN * this.A * (1 - this.A / 100);
+      const bakteriEtkisi = 0.08 * this.E * this.A;
+      this.A += (buyume - 0.12 * this.A - bakteriEtkisi) * dt;
+      this.A = clamp(this.A, 2, 100);
+      this.N -= 0.15 * buyume * dt;
+      this.P -= 0.01 * buyume * dt;
+
+      // Müsilaj: sıcak, azotça zengin, durgun suda strese giren fitoplanktonun salgısı dipte birikir
+      const stresT = clamp((this.T - 21) / 3, 0, 1.8);
+      const stresN = clamp((this.N - 50) / 50, 0, 1.6);
+      const uretim = 0.0155 * this.A * stresT * stresN;
+      const dogalCozunme = 0.03 * this.M;
+      const bakteriCozunme = 1.2 * this.E * this.M;
+      const santrifuj = filtre ? 0.35 * this.M : 0;
+      this.M += (uretim - dogalCozunme - bakteriCozunme - santrifuj) * dt;
+      this.M = clamp(this.M, 0, 100);
+
+      // Oksijen: yüzeyden yeniden havalanma − ayrışma/solunum + USV pompasının sirkülasyonu
+      const sat = doygunOksijen(this.T);
+      const tuketim = 0.05 * this.M + 0.018 * this.A;
+      const havalandirma = filtre ? 1.6 * (sat + 0.4 - this.DO) : 0;
+      this.DO += (0.5 * (sat - this.DO) - tuketim + havalandirma) * dt;
+      this.DO = clamp(this.DO, 0.2, 12);
+
+      if (filtre) {
+        this.N -= 12 * dt;          // biyoremediasyon: azot giderimi
+        this.P -= 0.6 * dt;
+        this.pompaGun += dt;
+      }
+      this.N = clamp(this.N, 0, 200);
+      this.P = clamp(this.P, 0, 15);
+      this.E += ((dozaj ? 1.5 : 0) - 0.6 * this.E) * dt;
+      this.E = Math.max(0, this.E);
+
+      this.maxM = Math.max(this.maxM, this.M);
+      if (this.yuzeyGunu === null && this.M >= YUZEY_ESIGI) {
+        this.yuzeyGunu = this.t;
+        this.olay('Müsilaj yüzeye çıktı: deniz salyası tabakası oluştu.', 'kritik');
+      }
+      if (!this.temizlendi && this.ilkAlarmGunu !== null && this.maxM > 4 && this.M < 2 && this.yuzeyGunu === null) {
+        this.temizlendi = true;
+        this.olay('Kuluçkadaki müsilaj santrifüj ve bakteri dozuyla giderildi; yüzeye çıkmadı.', 'iyi');
+      }
+    }
+
+    // main.py içindeki while döngüsünün karşılığı (+ 3 günlük trend filtresi)
+    kontrol() {
+      if (!this.devreVar()) return;
+
+      if (this.arizaVar('guc')) {
+        this.pompa = false; this.vana = false; this.durum = 'kapali'; this.okuma = null; this.trend = 0;
+        if (this.raporNo % 4 === 0) this.yaz('[BAĞLANTI YOK] #NODE-MARMARA-04 yanıt vermiyor. Şamandıradan paket alınamadı.', 'hata');
+        this.raporNo++;
+        return;
+      }
+
+      const gurultu = () => (Math.random() - 0.5) * 0.2;
+      const sicaklik = this.T + gurultu();
+      const azot = this.N + gurultu() * 5;
+      let oksijen = this.DO + gurultu();
+      const derinlik = this.derinlik;
+      if (this.arizaVar('sensor')) oksijen = 7.2; // ÇO sensörü takılı kaldı
+      this.okuma = { sicaklik, azot, oksijen, derinlik, fosfor: this.P, klorofil: this.klorofil() };
+
+      this.raporNo++;
+      this.yaz(`[TEKNİK RAPOR #${this.raporNo}] Sıcaklık: ${sicaklik.toFixed(1)}°C | Azot: ${azot.toFixed(1)}mg/L | DO: ${oksijen.toFixed(1)}mg/L | Derinlik: ${derinlik.toFixed(1)}cm`, 'rapor');
+
+      const ham = sicaklik > ESIK.SICAKLIK && azot > ESIK.AZOT && oksijen < ESIK.OKSIJEN;
+      const aktuatorBozuk = this.arizaVar('aktuator');
+
+      if (ham) {
+        this.trend += KONTROL_PERIYODU;
+        if (this.ilkSupheGunu === null) this.ilkSupheGunu = this.t;
+      } else if (this.trend > 0) {
+        if (this.trend < esikGun(this)) this.yaz('[TREND FİLTRESİ] Geçici sapma ayrıştırıldı, doğrulama sayacı sıfırlandı.', 'bilgi');
+        this.trend = 0;
+      }
+
+      const esik = this.ilkAlarmGunu === null ? TREND_GUN : TEKRAR_GUN;
+      if (ham && this.trend >= esik) {
+        this.durum = 'acil';
+        this.mudahale = MUDAHALE_SURESI;
+        this.pompa = !aktuatorBozuk;
+        this.vana = !aktuatorBozuk;
+        if (this.ilkAlarmGunu === null) {
+          this.ilkAlarmGunu = this.t;
+          this.olay(`Kuluçka evresi 3 günlük trendle doğrulandı; AFAD'a GPS koordinatlı uyarı gitti (müsilaj indeksi ${this.M.toFixed(0)}).`, 'acil');
+        }
+        if (!this.acilAktif) {
+          this.acilAktif = true;
+          this.yaz('!'.repeat(70), 'acil');
+          this.yaz('🚨 [ACİL DURUM - AFAD KRİZ YÖNETİM MERKEZİNE İLETİLDİ] 🚨', 'acil');
+          this.yaz(`İSTASYON ID : #NODE-MARMARA-04 | DERİNLİK: ${derinlik.toFixed(1)}m | KONUM: ${KONUM}`, 'acil');
+          this.yaz('TEŞHİS      : Kuluçka Evresindeki Müsilaj (Deniz Salyası) Kümelenmesi — 3 günlük trend doğrulandı', 'acil');
+          this.yaz(`ANOMALİ     : Sıcaklık: ${sicaklik.toFixed(1)}°C | Azot: ${azot.toFixed(1)}mg/L | DO: ${oksijen.toFixed(1)}mg/L`, 'acil');
+          this.yaz('AKSİYON     : USV-01 otonom rota oluşturdu → şamandıra koordinatına seyir', 'acil');
+          this.yaz('AKSİYON     : Santrifüj Filtre / Biyoremediasyon Pompaları DEVREDE (Röle: AÇIK)', 'acil');
+          this.yaz('AKSİYON     : Hedefli Bakteri Dozaj Vanası AÇILDI (Servo: 90°)', 'acil');
+          this.yaz('!'.repeat(70), 'acil');
+        } else {
+          this.yaz('🚨 [MÜDAHALE SÜRÜYOR] USV-01 bölgede: santrifüj filtre ve bakteri dozajı çalışıyor.', 'acil');
+        }
+        if (aktuatorBozuk) {
+          this.yaz('[SİSTEM HATASI]: USV-01 / röle / servo geri bildirimi yok! Müdahale başlatılamadı.', 'hata');
+        }
+        return;
+      }
+
+      this.acilAktif = false;
+      if (this.mudahale > 0 && !aktuatorBozuk) {
+        this.durum = 'acil';
+        this.yaz(`[MÜDAHALE] USV-01 dozajı tamamlıyor… (kalan ${this.mudahale.toFixed(1)} gün)`, 'bilgi');
+        return;
+      }
+      this.pompa = false;
+      this.vana = false;
+
+      if (ham) {
+        this.durum = 'dogrulama';
+        this.yaz(`[TREND FİLTRESİ] Kuluçka şüphesi: risk ${this.trend.toFixed(1)}/${esik} gündür kesintisiz sürüyor, doğrulanıyor...`, 'uyari');
+      } else if (azot > ESIK.AZOT || sicaklik > ESIK.SICAKLIK) {
+        this.durum = 'uyari';
+        this.yaz('⚠ [SİSTEM UYARISI] Ötrofikasyon Riski Yükseliyor! Parametreler İzleniyor...', 'uyari');
+      } else {
+        this.durum = 'stabil';
+        this.yaz('✅ [SİSTEM DURUMU] Ekosistem Stabil. Otonom Üniteler Beklemede.', 'iyi');
+      }
+    }
+
+    kaydet() {
+      this.gecmis.push({ t: this.t, T: this.T, N: this.N, DO: this.DO, M: this.M, A: this.A });
+    }
+
+    ilerle(gun, env) {
+      const h = 0.02;
+      let kalan = gun;
+      while (kalan > 1e-9) {
+        const dt = Math.min(h, kalan);
+        this.fizik(dt, env);
+        this.t += dt;
+        kalan -= dt;
+        if (this.mudahale > 0) this.mudahale = Math.max(0, this.mudahale - dt);
+        if (this.t >= this.sonrakiKontrol) {
+          this.sonrakiKontrol += KONTROL_PERIYODU;
+          this.kontrol();
+        }
+        const son = this.gecmis[this.gecmis.length - 1];
+        if (this.t - son.t >= 0.25) this.kaydet();
+      }
+    }
+
+    // Simülasyon sürerken devre kurulumu/arıza değiştirilebilir
+    modDegistir(mod, ariza) {
+      this.mod = mod;
+      if (ariza) this.ariza = ariza;
+      const kes = mod === 'yok' || (mod === 'arizali' && this.ariza !== 'sensor');
+      if (kes) {
+        this.pompa = false; this.vana = false; this.mudahale = 0; this.acilAktif = false;
+      }
+      if (mod === 'yok') { this.durum = 'kapali'; this.okuma = null; this.trend = 0; }
+      else if (this.durum === 'kapali') this.durum = 'stabil';
+    }
+  }
+
+  root.MaviKalkan = { Tank, ESIK, YUZEY_ESIGI, TREND_GUN, KONUM, evre, doygunOksijen, clamp };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+<script>
+(() => {
+  const { Tank, ESIK, YUZEY_ESIGI, TREND_GUN, evre, clamp } = window.MaviKalkan;
+  const SURE = 75;          // gün
+  const GUN_SN = 1.5;       // 1× hızda saniyede simüle edilen gün
+  const AZ_HAREKET = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const $ = (id) => document.getElementById(id);
+  const css = (ad) => getComputedStyle(document.documentElement).getPropertyValue(ad).trim();
+  const RENK = { mavi: css('--mavi'), kritik: css('--kritik'), uyari: css('--uyari'), iyi: css('--iyi'), cizgi: css('--cizgi'), soluk: css('--soluk'), sonuk: css('--sonuk'), salya: css('--salya'), ink: css('--ink'), maviAcik: css('--mavi-acik') };
+  const gunF = (t) => t.toFixed(1).replace('.', ',');
+
+  const ENV = { T: 25.5, N: 115 };
+  const durum = { sekme: 'karsi', oynuyor: true, hiz: 2, bitti: { tek: false, karsi: false }, odak: 1 };
+  const tek = new Tank('calisiyor', 'sensor');
+  const karsi = [new Tank('yok'), new Tank('calisiyor'), new Tank('arizali', 'sensor')];
+  const KARSI_AD = ['Devre yok', 'Devre çalışıyor', 'Devre arızalı'];
+  const SERI_RENK = [RENK.kritik, RENK.mavi, RENK.uyari];
+  const MOD_AD = { yok: 'Devre yok', calisiyor: 'Devre çalışıyor', arizali: 'Devre arızalı' };
+  const ARIZA_AD = { sensor: 'ÇO sensörü takılı', aktuator: 'USV / röle / servo yanıt vermiyor', guc: 'Güç ve iletişim kesik' };
+
+  // ------------------------------------------------------------------ Sahne
+  const TAM = Math.PI * 2;
+  const rnd = (a, b) => a + Math.random() * (b - a);
+  const karis = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+  const rgb = (c) => `rgb(${c[0] | 0},${c[1] | 0},${c[2] | 0})`;
+  const rgba = (c, a) => `rgba(${c[0] | 0},${c[1] | 0},${c[2] | 0},${a})`;
+  const SALYA = [226, 210, 160];
+  const yumusak = (x) => x * x * (3 - 2 * x);
+
+  class Sahne {
+    constructor(canvas, etiket) {
+      this.c = canvas;
+      this.g = canvas.getContext('2d');
+      this.etiket = etiket;
+      this.W = 0; this.H = 0;
+      this.f = [rnd(0, 6), rnd(0, 6), rnd(0, 6), rnd(0, 6)];
+      this.plankton = Array.from({ length: 200 }, () => ({ x: Math.random(), y: Math.random(), vx: rnd(-0.006, 0.006), vy: rnd(-0.004, 0.004), p: rnd(0, 6) }));
+      this.floklar = Array.from({ length: 120 }, () => ({ x: Math.random(), k: Math.random(), r: rnd(0.6, 1.4), p: rnd(0, 6), dx: rnd(-0.008, 0.008) }));
+      this.cimen = Array.from({ length: 38 }, () => ({ x: Math.random(), h: rnd(0.05, 0.13), p: rnd(0, 6) }));
+      this.kopuk = Array.from({ length: 80 }, () => ({ x: Math.random(), r: rnd(0.003, 0.011), dy: Math.random() }));
+      this.yildiz = Array.from({ length: 40 }, () => ({ x: Math.random(), y: Math.random() * 0.8, p: rnd(0, 6) }));
+      this.sifirla();
+      new ResizeObserver(() => this.boyutla()).observe(canvas);
+      this.boyutla();
+    }
+    sifirla() {
+      this.baliklar = Array.from({ length: 9 }, () => this.yeniBalik(true));
+      this.olular = [];
+      this.kabarcik = [];
+      this.bakteri = [];
+      this.balikSayisi = 9;
+    }
+    yeniBalik(icerde) {
+      const yon = Math.random() < 0.5 ? 1 : -1;
+      return { x: icerde ? Math.random() : (yon > 0 ? -0.06 : 1.06), y: rnd(0.3, 0.75), ev: rnd(0.3, 0.75), v: rnd(0.03, 0.06) * yon, s: rnd(0.8, 1.25), p: rnd(0, 6), hal: 'yuzuyor' };
+    }
+    boyutla() {
+      const r = this.c.getBoundingClientRect();
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      this.W = r.width; this.H = r.height;
+      if (this.W < 2) return;
+      this.c.width = Math.round(this.W * dpr);
+      this.c.height = Math.round(this.H * dpr);
+      this.g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    ciz(k, dt, z) {
+      const { g, W, H } = this;
+      if (W < 2 || H < 2) return;
+      const s = clamp(W / 820, 0.5, 1.4);
+      const M = k.M, A = k.A;
+      const bulanik = clamp(A / 100 * 0.28 + M / 100 * 0.9, 0, 1);
+      const mat = clamp((M - YUZEY_ESIGI + 10) / 40, 0, 1);
+      const yuzey = H * 0.22;
+      const amp = H * 0.011 * (1 - 0.75 * mat) * (AZ_HAREKET ? 0.3 : 1);
+      const dalga = (x) => yuzey + amp * (Math.sin(x * 0.021 / s + z * 1.3) * 0.7 + Math.sin(x * 0.052 / s - z * 0.85) * 0.35);
+      const dip = (x) => H * 0.89 + Math.sin(x / W * TAM * 1.2 + this.f[0]) * H * 0.022 + Math.sin(x / W * TAM * 3.1 + this.f[1]) * H * 0.01;
+      const derin = (n, x) => { const y0 = dalga(x) + 4 * s, y1 = dip(x) - 4 * s; return y0 + (y1 - y0) * n; };
+      const geo = { s, dalga, dip, derin, yuzey, z, bx: W * 0.76 };
+
+      // Gökyüzü: gün batımı, sunumdaki gece denizi
+      let gr = g.createLinearGradient(0, 0, 0, yuzey);
+      gr.addColorStop(0, '#08102a'); gr.addColorStop(0.62, '#2b2f57'); gr.addColorStop(1, '#c47a6c');
+      g.fillStyle = gr; g.fillRect(0, 0, W, yuzey + amp + 3);
+      g.fillStyle = 'rgba(230,236,255,0.7)';
+      for (const y of this.yildiz) { const a = 0.25 + 0.35 * Math.sin(z * 1.5 + y.p); g.globalAlpha = Math.max(0, a); g.fillRect(y.x * W, y.y * yuzey * 0.7, 1.2, 1.2); }
+      g.globalAlpha = 1;
+      const gx = W * 0.2;
+      gr = g.createRadialGradient(gx, yuzey, 0, gx, yuzey, H * 0.22);
+      gr.addColorStop(0, 'rgba(255,190,150,0.75)'); gr.addColorStop(1, 'rgba(255,190,150,0)');
+      g.fillStyle = gr; g.fillRect(0, 0, W, yuzey + 2);
+
+      // Su
+      g.beginPath(); g.moveTo(0, dalga(0));
+      for (let x = 0; x <= W + 6; x += 6) g.lineTo(x, dalga(x));
+      g.lineTo(W, H); g.lineTo(0, H); g.closePath();
+      gr = g.createLinearGradient(0, yuzey, 0, H);
+      gr.addColorStop(0, rgb(karis([30, 92, 160], [98, 102, 70], bulanik)));
+      gr.addColorStop(0.5, rgb(karis([10, 42, 88], [50, 54, 38], bulanik)));
+      gr.addColorStop(1, rgb(karis([3, 12, 30], [22, 24, 17], bulanik)));
+      g.fillStyle = gr; g.fill();
+
+      // Gün batımı yansıması
+      g.strokeStyle = `rgba(255,200,170,${0.35 * (1 - mat)})`; g.lineWidth = 1.2;
+      for (let i = 0; i < 7; i++) {
+        const y = yuzey + 4 * s + i * 4 * s, w = (30 - i * 3) * s, ox = Math.sin(z * 1.2 + i) * 6 * s;
+        g.beginPath(); g.moveTo(gx - w + ox, y); g.lineTo(gx + w + ox, y); g.stroke();
+      }
+
+      // Işık huzmeleri
+      if (bulanik < 0.92) {
+        g.save(); g.globalCompositeOperation = 'lighter';
+        for (let i = 0; i < 4; i++) {
+          const x0 = W * (0.12 + i * 0.22) + (AZ_HAREKET ? 0 : Math.sin(z * 0.3 + i) * 18 * s);
+          gr = g.createLinearGradient(0, yuzey, 0, H * 0.8);
+          gr.addColorStop(0, `rgba(120,170,255,${0.07 * (1 - bulanik)})`); gr.addColorStop(1, 'rgba(120,170,255,0)');
+          g.fillStyle = gr; g.beginPath();
+          g.moveTo(x0 - 12 * s, yuzey); g.lineTo(x0 + 16 * s, yuzey); g.lineTo(x0 + 70 * s, H * 0.8); g.lineTo(x0 + 10 * s, H * 0.8); g.closePath(); g.fill();
+        }
+        g.restore();
+      }
+
+      // Deniz tabanı
+      g.beginPath(); g.moveTo(0, dip(0));
+      for (let x = 0; x <= W + 8; x += 8) g.lineTo(x, dip(x));
+      g.lineTo(W, H); g.lineTo(0, H); g.closePath();
+      gr = g.createLinearGradient(0, H * 0.85, 0, H);
+      gr.addColorStop(0, '#3a3a36'); gr.addColorStop(1, '#141513');
+      g.fillStyle = gr; g.fill();
+      // Dipte biriken müsilaj (kuluçka)
+      if (M > 3) {
+        const kal = clamp((M - 3) / 40, 0, 1) * 9 * s + 1;
+        g.beginPath(); g.moveTo(0, dip(0) - kal);
+        for (let x = 0; x <= W + 8; x += 8) g.lineTo(x, dip(x) - kal * (0.6 + 0.4 * Math.sin(x * 0.05 / s + this.f[2])));
+        for (let x = W + 8; x >= 0; x -= 8) g.lineTo(x, dip(x) + 2);
+        g.closePath();
+        g.fillStyle = rgba(SALYA, 0.25 + 0.5 * clamp(M / 60, 0, 1)); g.fill();
+      }
+      // Deniz çayırı
+      const cimenRenk = rgb(karis([46, 140, 104], [96, 92, 64], clamp(M / 55, 0, 1)));
+      g.strokeStyle = cimenRenk; g.lineCap = 'round';
+      for (const c of this.cimen) {
+        const x = c.x * W, y = dip(x), h = c.h * H * (1 - 0.45 * clamp(M / 70, 0, 1));
+        const sal = (AZ_HAREKET ? 0.3 : 1) * Math.sin(z * 1.1 + c.p) * 7 * s;
+        g.lineWidth = 2 * s; g.beginPath(); g.moveTo(x, y); g.quadraticCurveTo(x + sal * 0.4, y - h * 0.6, x + sal, y - h); g.stroke();
+      }
+
+      // Fitoplankton (biyolüminesans maviden yeşil patlamaya)
+      const nP = Math.round(clamp(A / 100, 0, 1) * this.plankton.length);
+      const pRenk = karis([120, 200, 255], [160, 220, 110], clamp((A - 30) / 60, 0, 1));
+      for (let i = 0; i < nP; i++) {
+        const p = this.plankton[i];
+        p.x = (p.x + p.vx * dt + 1) % 1; p.y = clamp(p.y + p.vy * dt, 0, 1); if (p.y <= 0 || p.y >= 1) p.vy *= -1;
+        const px = p.x * W, py = derin(p.y * 0.85, px);
+        g.fillStyle = rgba(pRenk, 0.35 + 0.3 * Math.sin(z * 2 + p.p));
+        g.fillRect(px, py, 1.7 * s, 1.7 * s);
+      }
+
+      // Müsilaj kümeleri: kuluçkada dipte, büyüdükçe yükselir
+      const nF = Math.round(clamp(M / 65, 0, 1) * this.floklar.length);
+      const yuksel = clamp((M - 6) / 50, 0, 1);
+      for (let i = 0; i < nF; i++) {
+        const f = this.floklar[i];
+        f.x = (f.x + f.dx * dt + 1) % 1;
+        const px = f.x * W;
+        const n = clamp(0.94 - yuksel * (0.3 + 0.7 * f.k) * 0.95, 0.03, 0.96);
+        const py = derin(n, px) + Math.sin(z * 0.7 + f.p) * 4 * s;
+        const r = (2.4 + M * 0.12) * f.r * s;
+        const al = 0.18 + 0.5 * clamp(M / 70, 0, 1);
+        gr = g.createRadialGradient(px, py, 0, px, py, r * 1.8);
+        gr.addColorStop(0, rgba(SALYA, al)); gr.addColorStop(1, rgba(SALYA, 0));
+        g.fillStyle = gr; g.beginPath(); g.arc(px, py, r * 1.8, 0, TAM); g.fill();
+        if (M > 15) {
+          g.strokeStyle = rgba(SALYA, al * 0.45); g.lineWidth = 0.8;
+          g.beginPath(); g.moveTo(px, py);
+          for (let j = 1; j <= 4; j++) g.lineTo(px + Math.sin(z + f.p + j) * 2 * s, py + j * r * 0.7);
+          g.stroke();
+        }
+      }
+
+      if (k.devreVar()) this.istasyonAlt(k, geo);
+      this.usvAlt(k, geo, dt);
+      this.balik(k, geo, dt);
+      if (mat > 0) this.tabaka(geo, mat, W);
+      this.usvUst(k, geo);
+      if (k.devreVar()) this.istasyonUst(k, geo);
+      if (this.etiket && W > 520) this.etiketler(k, geo);
+    }
+
+    istasyonAlt(k, { s, dalga, derin, z, bx }) {
+      const g = this.g;
+      const by = dalga(bx);
+      const guc = k.arizaVar('guc');
+      g.strokeStyle = 'rgba(200,210,225,0.55)'; g.lineWidth = 1.2 * s;
+      g.beginPath(); g.moveTo(bx, by + 8 * s); g.lineTo(bx + 3 * s, derin(0.93, bx)); g.stroke();
+      const dugumler = [0.38, 0.62, 0.86];
+      const sira = Math.floor(z * 3) % 3; // 100 ms sıralı okuma (time multiplexing)
+      dugumler.forEach((n, i) => {
+        const x = bx + 3 * s * n, y = derin(n, bx);
+        g.fillStyle = '#cdd6e4';
+        g.fillRect(x - 3.5 * s, y - 8 * s, 7 * s, 16 * s);
+        let led = RENK.iyi;
+        if (guc) led = '#2a3242';
+        else if (k.arizaVar('sensor') && i === 2) led = (Math.sin(z * 8) > 0) ? RENK.kritik : '#401010';
+        else if (i === sira) led = RENK.maviAcik;
+        g.fillStyle = led; g.beginPath(); g.arc(x, y - 3 * s, 2 * s, 0, TAM); g.fill();
+      });
+    }
+
+    istasyonUst(k, { s, dalga, z, bx }) {
+      const g = this.g;
+      const by = dalga(bx);
+      const guc = k.arizaVar('guc');
+      // gövde
+      g.fillStyle = '#e9c34a';
+      g.beginPath(); g.ellipse(bx, by + 2 * s, 16 * s, 9 * s, 0, 0, TAM); g.fill();
+      g.fillStyle = '#f4f1e6'; g.fillRect(bx - 16 * s, by - 1 * s, 32 * s, 3 * s);
+      // direk + kamera + anten
+      g.strokeStyle = '#cfd6e2'; g.lineWidth = 2 * s;
+      g.beginPath(); g.moveTo(bx, by - 6 * s); g.lineTo(bx, by - 30 * s); g.stroke();
+      g.fillStyle = '#2b3446'; g.fillRect(bx - 6 * s, by - 18 * s, 8 * s, 6 * s);
+      g.lineWidth = 1 * s; g.beginPath(); g.moveTo(bx + 4 * s, by - 30 * s); g.lineTo(bx + 4 * s, by - 40 * s); g.stroke();
+      // LED
+      const yanip = Math.sin(z * 7) > 0;
+      let led = '#2a3242';
+      if (!guc) {
+        if (k.durum === 'stabil') led = RENK.iyi;
+        else if (k.durum === 'uyari') led = RENK.uyari;
+        else if (k.durum === 'dogrulama') led = yanip ? RENK.uyari : '#5a4210';
+        else if (k.durum === 'acil') led = yanip ? RENK.kritik : '#4a1210';
+      }
+      g.fillStyle = led; g.beginPath(); g.arc(bx, by - 32 * s, 3.2 * s, 0, TAM); g.fill();
+      if (!guc && led !== '#2a3242') {
+        const gr = g.createRadialGradient(bx, by - 32 * s, 0, bx, by - 32 * s, 12 * s);
+        gr.addColorStop(0, led + '88'); gr.addColorStop(1, led + '00');
+        g.fillStyle = gr; g.beginPath(); g.arc(bx, by - 32 * s, 12 * s, 0, TAM); g.fill();
+      }
+      // AFAD'a sinyal
+      if (k.durum === 'acil' && !guc) {
+        g.strokeStyle = RENK.kritik; g.lineWidth = 1.4 * s;
+        for (let i = 0; i < 3; i++) {
+          const f = (z * 0.9 + i / 3) % 1;
+          g.globalAlpha = 1 - f;
+          g.beginPath(); g.arc(bx + 4 * s, by - 40 * s, 6 * s + f * 26 * s, -Math.PI * 0.85, -Math.PI * 0.15); g.stroke();
+        }
+        g.globalAlpha = 1;
+      }
+      if (guc) {
+        g.strokeStyle = RENK.kritik; g.lineWidth = 2 * s;
+        g.beginPath(); g.moveTo(bx - 10 * s, by - 44 * s); g.lineTo(bx + 14 * s, by - 22 * s); g.stroke();
+      }
+    }
+
+    usvKonum(k, { s, bx, dalga }) {
+      const W = this.W;
+      const u = yumusak(clamp(k.usv.ilerleme, 0, 1));
+      const ux = (W + 70 * s) + ((bx - 78 * s) - (W + 70 * s)) * u;
+      return { ux, uy: dalga(ux) };
+    }
+
+    usvAlt(k, geo, dt) {
+      const g = this.g, { s, derin, z } = geo;
+      const aktif = k.usvGorevde() && k.pompa;
+      const dozaj = k.usvGorevde() && k.vana;
+      if (k.usv.ilerleme > 0) {
+        const { ux, uy } = this.usvKonum(k, geo);
+        if (aktif) {
+          // santrifüj filtre hortumu kuluçkaya iner
+          const hy = derin(0.82, ux);
+          g.strokeStyle = '#c3ccd9'; g.lineWidth = 2.4 * s;
+          g.beginPath(); g.moveTo(ux + 8 * s, uy + 4 * s); g.bezierCurveTo(ux + 22 * s, uy + 60 * s, ux - 10 * s, hy - 40 * s, ux + 6 * s, hy); g.stroke();
+          g.fillStyle = '#c3ccd9'; g.fillRect(ux + 1 * s, hy, 10 * s, 4 * s);
+          if (Math.random() < dt * 30) this.kabarcik.push({ x: ux + rnd(0, 12) * s, y: hy, v: rnd(30, 60) * s, p: rnd(0, 6), r: rnd(1, 2.6) * s });
+          if (k.M > 2) {
+            g.fillStyle = rgba(SALYA, 0.8);
+            for (let i = 0; i < 4; i++) {
+              const t = ((z * 0.8 + i / 4) % 1), u = 1 - t;
+              const x = u * u * u * (ux + 6 * s) + 3 * u * u * t * (ux - 10 * s) + 3 * u * t * t * (ux + 22 * s) + t * t * t * (ux + 8 * s);
+              const y = u * u * u * hy + 3 * u * u * t * (hy - 40 * s) + 3 * u * t * t * (uy + 60 * s) + t * t * t * (uy + 4 * s);
+              g.beginPath(); g.arc(x, y, 1.6 * s, 0, TAM); g.fill();
+            }
+          }
+        }
+        if (dozaj && Math.random() < dt * 60) {
+          this.bakteri.push({ x: ux - 18 * s, y: uy + 6 * s, vx: rnd(-26, 26) * s, vy: rnd(12, 40) * s, life: rnd(2.5, 4.5), yas: 0 });
+        }
+      }
+      // kabarcıklar
+      g.fillStyle = 'rgba(210,230,255,0.55)';
+      this.kabarcik = this.kabarcik.filter((b) => {
+        b.y -= b.v * dt; b.x += Math.sin(z * 4 + b.p) * 0.3;
+        if (b.y < geo.dalga(b.x) + 2) return false;
+        g.beginPath(); g.arc(b.x, b.y, b.r, 0, TAM); g.fill();
+        return true;
+      });
+      // bakteri dozu
+      this.bakteri = this.bakteri.filter((b) => {
+        b.yas += dt; b.x += b.vx * dt; b.y += b.vy * dt; b.vx *= 0.99; b.vy *= 0.985;
+        if (b.yas > b.life) return false;
+        const a = 0.75 * (1 - b.yas / b.life);
+        const gr = g.createRadialGradient(b.x, b.y, 0, b.x, b.y, 4 * s);
+        gr.addColorStop(0, `rgba(110,240,230,${a})`); gr.addColorStop(1, 'rgba(110,240,230,0)');
+        g.fillStyle = gr; g.beginPath(); g.arc(b.x, b.y, 4 * s, 0, TAM); g.fill();
+        return true;
+      });
+      if (this.bakteri.length > 320) this.bakteri.splice(0, this.bakteri.length - 320);
+    }
+
+    usvUst(k, geo) {
+      const g = this.g, { s, z } = geo;
+      if (k.usv.ilerleme <= 0) return;
+      const { ux, uy } = this.usvKonum(k, geo);
+      const hareket = k.usv.durum === 'yolda' || k.usv.durum === 'donuyor';
+      if (hareket) {
+        g.strokeStyle = 'rgba(235,242,255,0.6)'; g.lineWidth = 1.2 * s;
+        const yon = k.usv.durum === 'yolda' ? 1 : -1;
+        for (let i = 0; i < 4; i++) { g.beginPath(); g.moveTo(ux + yon * (36 + i * 10) * s, uy + (1 + i) * s); g.lineTo(ux + yon * (56 + i * 16) * s, uy + (1 + i) * s); g.stroke(); }
+      }
+      // katamaran
+      g.fillStyle = '#e6ebf3';
+      g.beginPath(); g.roundRect(ux - 34 * s, uy - 3 * s, 68 * s, 6 * s, 3 * s); g.fill();
+      g.fillStyle = '#c4ccd8'; g.fillRect(ux - 28 * s, uy - 7 * s, 56 * s, 4 * s);
+      g.fillStyle = '#eef2f8'; g.beginPath(); g.roundRect(ux - 14 * s, uy - 18 * s, 26 * s, 11 * s, 2 * s); g.fill();
+      g.fillStyle = '#1b2436'; g.fillRect(ux - 11 * s, uy - 15 * s, 20 * s, 3 * s);
+      g.strokeStyle = '#cfd6e2'; g.lineWidth = 1.4 * s;
+      g.beginPath(); g.moveTo(ux, uy - 18 * s); g.lineTo(ux, uy - 28 * s); g.moveTo(ux - 5 * s, uy - 25 * s); g.lineTo(ux + 5 * s, uy - 25 * s); g.stroke();
+      g.fillStyle = RENK.mavi; g.fillRect(ux - 30 * s, uy - 2 * s, 14 * s, 2 * s);
+      // kıçtan su çıkışı
+      if (k.usvGorevde() && k.pompa) {
+        g.strokeStyle = 'rgba(235,245,255,0.7)'; g.lineWidth = 1.5 * s;
+        for (let i = 0; i < 3; i++) {
+          const f = (z * 2 + i / 3) % 1;
+          g.beginPath(); g.moveTo(ux + 34 * s, uy - 2 * s); g.quadraticCurveTo(ux + (40 + f * 10) * s, uy - 6 * s, ux + (44 + f * 14) * s, uy + 3 * s); g.stroke();
+        }
+      }
+    }
+
+    balik(k, { s, derin, z }, dt) {
+      const g = this.g, W = this.W;
+      const DO = k.DO;
+      const hedef = DO >= 4 ? 9 : DO >= 3 ? 6 : DO >= 2.2 ? 3 : DO >= 1.4 ? 1 : 0;
+      const canli = this.baliklar.filter((b) => b.hal === 'yuzuyor');
+      if (canli.length > hedef && Math.random() < dt * 1.2) {
+        const b = canli[(Math.random() * canli.length) | 0];
+        if (DO < 1.6) { b.hal = 'olu'; this.olular.push(b); }
+        else { b.hal = 'kaciyor'; b.v = Math.sign(b.v || 1) * 0.22; }
+      }
+      if (canli.length < hedef && DO >= 4 && Math.random() < dt * 0.35) this.baliklar.push(this.yeniBalik(false));
+      this.baliklar = this.baliklar.filter((b) => b.hal !== 'olu' && !(b.hal === 'kaciyor' && (b.x < -0.1 || b.x > 1.1)));
+      this.balikSayisi = this.baliklar.filter((b) => b.hal === 'yuzuyor').length;
+      const nefes = DO < 3.5;
+      for (const b of this.baliklar) {
+        b.x += b.v * dt;
+        if (b.hal === 'yuzuyor' && (b.x > 1.06 || b.x < -0.06)) b.v *= -1;
+        const hedefY = nefes ? 0.08 + 0.06 * Math.sin(b.p) : b.ev;
+        b.y += (hedefY - b.y) * Math.min(1, dt * 0.4);
+        const x = b.x * W, y = derin(clamp(b.y, 0.03, 0.95), x) + Math.sin(z * 2 + b.p) * 2 * s;
+        this.balikCiz(x, y, b.s * s, Math.sign(b.v), false, z + b.p);
+      }
+      this.olular.forEach((b) => {
+        b.y = Math.min(0.97, b.y + dt * 0.05);
+        const x = b.x * W, y = derin(b.y, x);
+        this.balikCiz(x, y, b.s * s, 1, true, 0);
+      });
+      if (this.olular.length > 14) this.olular.splice(0, this.olular.length - 14);
+    }
+
+    balikCiz(x, y, s, yon, olu, ph) {
+      const g = this.g;
+      g.save(); g.translate(x, y); g.scale(yon || 1, olu ? -1 : 1);
+      const kuyruk = olu ? 0 : Math.sin(ph * 6) * 2 * s;
+      g.fillStyle = olu ? '#7d817a' : '#b9cde0';
+      g.beginPath(); g.ellipse(0, 0, 9 * s, 3.4 * s, 0, 0, TAM); g.fill();
+      g.beginPath(); g.moveTo(-8 * s, 0); g.lineTo(-14 * s, -4 * s + kuyruk); g.lineTo(-14 * s, 4 * s + kuyruk); g.closePath(); g.fill();
+      g.fillStyle = olu ? '#5d605a' : '#6f88a3';
+      g.beginPath(); g.ellipse(1 * s, -1.6 * s, 6 * s, 1.4 * s, 0, 0, TAM); g.fill();
+      g.fillStyle = '#0c1424'; g.beginPath(); g.arc(5.5 * s, -0.6 * s, 0.9 * s, 0, TAM); g.fill();
+      g.restore();
+    }
+
+    tabaka({ s, dalga }, mat, W) {
+      const g = this.g, H = this.H;
+      const th = mat * H * 0.075 + 2;
+      const alt = (x) => dalga(x) + th * (0.55 + 0.45 * (0.5 + 0.5 * Math.sin(x * 0.034 / s + this.f[2])));
+      g.beginPath(); g.moveTo(0, dalga(0) - 1.5 * s);
+      for (let x = 0; x <= W + 6; x += 6) g.lineTo(x, dalga(x) - 1.5 * s);
+      for (let x = W + 6; x >= 0; x -= 6) g.lineTo(x, alt(x));
+      g.closePath();
+      const gr = g.createLinearGradient(0, dalga(0) - 2, 0, dalga(0) + th);
+      gr.addColorStop(0, `rgba(238,224,182,${0.7 + 0.25 * mat})`); gr.addColorStop(1, `rgba(168,148,98,${0.6 + 0.25 * mat})`);
+      g.fillStyle = gr; g.fill();
+      g.fillStyle = `rgba(250,242,215,${0.5 * mat})`;
+      for (const b of this.kopuk) { const x = b.x * W; g.beginPath(); g.arc(x, dalga(x) + b.dy * th * 0.5, b.r * W * (0.5 + mat * 0.6), 0, TAM); g.fill(); }
+      g.strokeStyle = `rgba(226,210,160,${0.35 * mat})`; g.lineWidth = 1;
+      for (let i = 0, x = 6; x < W; i++, x += 22 * s) {
+        const uz = th * (0.8 + ((i * 37) % 10) / 10 * 1.6);
+        g.beginPath(); g.moveTo(x, alt(x));
+        for (let j = 1; j <= 5; j++) g.lineTo(x + Math.sin(i + j) * 2 * s, alt(x) + uz * j / 5);
+        g.stroke();
+      }
+    }
+
+    etiketler(k, geo) {
+      const g = this.g, { s, dalga, derin, dip, bx } = geo;
+      g.font = '500 11.5px "IBM Plex Sans", system-ui, sans-serif';
+      g.textBaseline = 'middle';
+      const yaz = (metin, x, y, hiza, renk) => {
+        g.textAlign = hiza;
+        const w = g.measureText(metin).width + 12;
+        const x0 = hiza === 'right' ? x - w : hiza === 'center' ? x - w / 2 : x;
+        g.fillStyle = 'rgba(4,7,13,0.72)'; g.beginPath(); g.roundRect(x0, y - 10, w, 20, 4); g.fill();
+        g.fillStyle = renk || '#e8edf6';
+        g.fillText(metin, hiza === 'right' ? x - 6 : hiza === 'center' ? x : x + 6, y + 0.5);
+      };
+      if (k.devreVar()) {
+        yaz('IP68 şamandıra · kamera', bx + 22 * s, dalga(bx) - 56 * s, 'left');
+        yaz('Derin sensör hattı · ÇO, azot, fosfor, klorofil', bx - 12 * s, derin(0.62, bx), 'right');
+      }
+      if (k.usv.ilerleme > 0) {
+        const { ux, uy } = this.usvKonum(k, geo);
+        const durumYazi = { yolda: 'USV-01 · koordinata gidiyor', gorevde: 'USV-01 · santrifüj filtre + bakteri dozu', donuyor: 'USV-01 · limana dönüyor' }[k.usv.durum] || 'USV-01';
+        yaz(durumYazi, ux, uy - 42 * s, 'center', RENK.maviAcik);
+      }
+      if (k.arizaVar('aktuator') && k.durum === 'acil') {
+        yaz('USV-01 yanıt vermiyor', this.W - 12, dalga(this.W - 80) - 30 * s, 'right', RENK.kritik);
+      }
+      const e = evre(k.M);
+      if (e.kod === 'kulucka' || e.kod === 'askida') yaz(e.kod === 'kulucka' ? 'Kuluçka: müsilaj dipte birikiyor' : 'Müsilaj kümeleri yükseliyor', 14, dip(80) - 26 * s, 'left', RENK.salya);
+      if (e.kod === 'yuzey') yaz('Deniz salyası tabakası', 14, dalga(60) + 30 * s, 'left', RENK.salya);
+    }
+  }
+
+  // ------------------------------------------------------------------ Kartlar
+  const kartlarEl = $('kartlar');
+  const kartEl = KARSI_AD.map((ad, i) => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'kart'; b.setAttribute('aria-pressed', i === durum.odak ? 'true' : 'false');
+    b.innerHTML = `<div class="kart-bas"><h3>${ad}</h3><span class="kas" data-alt></span></div>
+      <div class="kesit"><canvas aria-label="${ad}: deniz kesiti"></canvas></div>
+      <span class="cip hukum" data-hukum>İzleniyor</span>
+      <div class="kart-alt">
+        <div class="olcu"><span>Müsilaj</span><b data-m>0</b></div>
+        <div class="olcu"><span>ÇO mg/L</span><b data-do>0</b></div>
+        <div class="olcu"><span>Balık</span><b data-b>9/9</b></div>
+      </div>`;
+    b.addEventListener('click', () => { durum.odak = i; kartEl.forEach((x, j) => x.setAttribute('aria-pressed', j === i ? 'true' : 'false')); terminalSifirla(); });
+    kartlarEl.appendChild(b);
+    return b;
+  });
+  const sahneK = kartEl.map((b) => new Sahne(b.querySelector('canvas'), false));
+  const sahneTek = new Sahne($('tekSahne'), true);
+
+  // ------------------------------------------------------------------ Göstergeler
+  const GOSTERGE = [
+    { a: 'T', ad: 'Sıcaklık', birim: '°C', min: 10, max: 32, esik: ESIK.SICAKLIK, yon: 1, d: 1 },
+    { a: 'N', ad: 'Azot', birim: 'mg/L', min: 0, max: 160, esik: ESIK.AZOT, yon: 1, d: 0 },
+    { a: 'DO', ad: 'Çözünmüş O₂', birim: 'mg/L', min: 0, max: 10, esik: ESIK.OKSIJEN, yon: -1, d: 1 },
+    { a: 'M', ad: 'Müsilaj indeksi', birim: '/100', min: 0, max: 100, esik: YUZEY_ESIGI, yon: 1, d: 0 },
+  ];
+  const gEl = GOSTERGE.map((m) => {
+    const d = document.createElement('div');
+    d.className = 'gosterge';
+    d.innerHTML = `<div class="gosterge-bas"><span class="kas">${m.ad}</span></div>
+      <div class="gosterge-deger"><span data-v>—</span><small>${m.birim}</small></div>
+      <canvas aria-hidden="true"></canvas><div class="gosterge-not" data-n></div>`;
+    $('gostergeler').appendChild(d);
+    return { kok: d, v: d.querySelector('[data-v]'), n: d.querySelector('[data-n]'), c: d.querySelector('canvas') };
+  });
+
+  function tuvalHazirla(c) {
+    const r = c.getBoundingClientRect();
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    const w = Math.max(1, r.width), h = Math.max(1, r.height);
+    if (c.width !== Math.round(w * dpr) || c.height !== Math.round(h * dpr)) { c.width = Math.round(w * dpr); c.height = Math.round(h * dpr); }
+    const g = c.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
+    return { g, w, h };
+  }
+
+  function kivilcim(c, gecmis, m, renk, tmax) {
+    const { g, w, h } = tuvalHazirla(c);
+    if (w < 4) return;
+    const X = (t) => 2 + t / tmax * (w - 6);
+    const Y = (v) => h - 3 - (clamp(v, m.min, m.max) - m.min) / (m.max - m.min) * (h - 6);
+    g.setLineDash([3, 3]); g.strokeStyle = RENK.sonuk; g.lineWidth = 1;
+    g.beginPath(); g.moveTo(0, Y(m.esik)); g.lineTo(w, Y(m.esik)); g.stroke(); g.setLineDash([]);
+    if (gecmis.length < 2) return;
+    g.beginPath(); g.moveTo(X(gecmis[0].t), h);
+    gecmis.forEach((p) => g.lineTo(X(p.t), Y(p[m.a])));
+    g.lineTo(X(gecmis[gecmis.length - 1].t), h); g.closePath();
+    g.fillStyle = renk + '26'; g.fill();
+    g.beginPath(); gecmis.forEach((p, i) => (i ? g.lineTo(X(p.t), Y(p[m.a])) : g.moveTo(X(p.t), Y(p[m.a]))));
+    g.strokeStyle = renk; g.lineWidth = 1.6; g.stroke();
+    const son = gecmis[gecmis.length - 1];
+    g.fillStyle = renk; g.beginPath(); g.arc(X(son.t), Y(son[m.a]), 2.6, 0, TAM); g.fill();
+  }
+
+  function karsiGrafik() {
+    const { g, w, h } = tuvalHazirla($('karsiGrafik'));
+    if (w < 10) return;
+    const sol = 36, sag = 12, ust = 12, alt = 26;
+    const tmax = Math.max(SURE, Math.ceil(karsi[0].t / 15) * 15);
+    const X = (t) => sol + t / tmax * (w - sol - sag);
+    const Y = (v) => ust + (1 - v / 100) * (h - ust - alt);
+    g.font = '11px "IBM Plex Mono", monospace'; g.fillStyle = RENK.sonuk; g.textBaseline = 'middle'; g.textAlign = 'right';
+    g.strokeStyle = RENK.cizgi; g.lineWidth = 1;
+    [0, 25, 50, 75, 100].forEach((v) => { g.beginPath(); g.moveTo(sol, Y(v)); g.lineTo(w - sag, Y(v)); g.stroke(); g.fillText(String(v), sol - 6, Y(v)); });
+    g.textAlign = 'center'; g.textBaseline = 'top';
+    for (let t = 0; t <= tmax; t += 15) g.fillText(t === 0 ? '0' : `${t}. gün`, X(t), h - alt + 8);
+    // yüzey eşiği
+    g.setLineDash([5, 4]); g.strokeStyle = RENK.salya; g.globalAlpha = 0.7;
+    g.beginPath(); g.moveTo(sol, Y(YUZEY_ESIGI)); g.lineTo(w - sag, Y(YUZEY_ESIGI)); g.stroke(); g.setLineDash([]); g.globalAlpha = 1;
+    g.fillStyle = RENK.salya; g.textAlign = 'left'; g.textBaseline = 'bottom';
+    g.fillText('yüzeye çıkış eşiği', sol + 6, Y(YUZEY_ESIGI) - 3);
+    // erken uyarı çizgisi
+    const c = karsi[1];
+    if (c.ilkAlarmGunu !== null) {
+      g.strokeStyle = RENK.mavi; g.setLineDash([2, 3]);
+      g.beginPath(); g.moveTo(X(c.ilkAlarmGunu), ust); g.lineTo(X(c.ilkAlarmGunu), h - alt); g.stroke(); g.setLineDash([]);
+      g.fillStyle = RENK.maviAcik; g.textBaseline = 'top';
+      g.fillText(`Mavi Kalkan uyarısı · ${gunF(c.ilkAlarmGunu)}. gün`, X(c.ilkAlarmGunu) + 5, ust + 2);
+    }
+    karsi.forEach((k, i) => {
+      g.beginPath();
+      k.gecmis.forEach((p, j) => (j ? g.lineTo(X(p.t), Y(p.M)) : g.moveTo(X(p.t), Y(p.M))));
+      g.strokeStyle = SERI_RENK[i]; g.lineWidth = i === 0 ? 4 : 2; g.setLineDash(i === 2 ? [7, 5] : []); g.stroke(); g.setLineDash([]);
+      const son = k.gecmis[k.gecmis.length - 1];
+      g.fillStyle = SERI_RENK[i]; g.beginPath(); g.arc(X(son.t), Y(son.M), 3, 0, TAM); g.fill();
+    });
+    const y = karsi[0];
+    if (y.yuzeyGunu !== null) {
+      g.fillStyle = RENK.kritik; g.beginPath(); g.arc(X(y.yuzeyGunu), Y(YUZEY_ESIGI), 4.5, 0, TAM); g.fill();
+      g.textAlign = 'right'; g.textBaseline = 'bottom';
+      g.fillText(`yüzeye çıktı · ${gunF(y.yuzeyGunu)}. gün`, X(y.yuzeyGunu) - 8, Y(YUZEY_ESIGI) - 8);
+    }
+  }
+
+  // ------------------------------------------------------------------ Hüküm ve bileşenler
+  function hukum(k) {
+    if (k.yuzeyGunu !== null) return { s: 'kritik', m: `Müsilaj oluştu · ${gunF(k.yuzeyGunu)}. gün yüzeyde` };
+    if (k.pompa && k.usvGorevde()) return { s: 'aktif', m: 'USV müdahale ediyor' };
+    if (k.M >= 25) return { s: 'uyari', m: 'Müsilaj askıda, yükseliyor' };
+    if (k.M >= 5) return { s: 'uyari', m: 'Kuluçka evresi · dipte' };
+    if (k.ilkAlarmGunu !== null && k.mod === 'calisiyor') return { s: 'iyi', m: 'Müsilaj engellendi' };
+    if (k.t >= SURE) return { s: 'iyi', m: 'Müsilaj oluşmadı' };
+    return { s: '', m: 'Temiz · izleniyor' };
+  }
+
+  function bilesenler(k) {
+    if (!k.devreVar()) {
+      return [['Şamandıra ve sensörler', 'Kurulu değil', 'kapali', '—'], ['USV-01', 'Kurulu değil', 'kapali', '—'], ['AFAD bildirimi', 'Kurulu değil', 'kapali', '—']];
+    }
+    const guc = k.arizaVar('guc'), sens = k.arizaVar('sensor'), akt = k.arizaVar('aktuator');
+    const o = k.okuma;
+    const yok = '—';
+    const usvYazi = akt ? (k.durum === 'acil' ? 'Komut var, yanıt yok' : 'Arızalı')
+      : { liman: 'Limanda', yolda: `Yolda %${Math.round(k.usv.ilerleme * 100)}`, gorevde: 'Görevde', donuyor: 'Dönüyor' }[k.usv.durum];
+    const trendYazi = guc ? yok : k.ilkAlarmGunu !== null && k.durum === 'acil' ? 'Doğrulandı' : k.trend > 0 ? `${k.trend.toFixed(1)}/${k.ilkAlarmGunu === null ? TREND_GUN : 1} gün` : 'Risk yok';
+    const kamera = k.M >= YUZEY_ESIGI ? ['kritik', 'Müsilaj görüldü'] : ['iyi', 'Yüzeyde iz yok'];
+    return [
+      ['Raspberry Pi Pico', 'MicroPython ana döngü', guc ? 'kritik' : 'iyi', guc ? 'Güç yok' : 'Çalışıyor'],
+      ['Sıcaklık sensörü', 'Wokwi: potansiyometre 1', guc ? 'kapali' : (o && o.sicaklik > ESIK.SICAKLIK ? 'uyari' : 'iyi'), o ? `${o.sicaklik.toFixed(1)} °C` : yok],
+      ['Azot sensörü', 'Wokwi: potansiyometre 2', guc ? 'kapali' : (o && o.azot > ESIK.AZOT ? 'uyari' : 'iyi'), o ? `${o.azot.toFixed(1)} mg/L` : yok],
+      ['Çözünmüş O₂ sensörü', 'Wokwi: potansiyometre 3', guc ? 'kapali' : sens ? 'kritik' : (o && o.oksijen < ESIK.OKSIJEN ? 'uyari' : 'iyi'), o ? `${o.oksijen.toFixed(1)} mg/L${sens ? ' · takılı' : ''}` : yok],
+      ['Fosfor · klorofil', 'Derin sensör hattı', guc ? 'kapali' : 'iyi', o ? `${o.fosfor.toFixed(1)} · ${o.klorofil.toFixed(0)} µg/L` : yok],
+      ['Ultrasonik HC-SR04', 'Derinlik', guc ? 'kapali' : 'iyi', o ? `${o.derinlik.toFixed(1)} cm` : yok],
+      ['Kamera (OpenCV)', 'Yalnız yüzeyi görür', guc ? 'kapali' : kamera[0], guc ? yok : kamera[1]],
+      ['3 günlük trend filtresi', 'Kuluçka doğrulama', guc ? 'kapali' : k.durum === 'acil' ? 'kritik' : k.trend > 0 ? 'uyari' : 'iyi', trendYazi],
+      ['Röle → santrifüj pompa', 'role_pompa', akt ? 'kritik' : guc ? 'kapali' : k.pompa ? 'aktif' : 'iyi', akt ? 'Yanıt yok' : k.pompa ? 'AÇIK' : 'Kapalı'],
+      ['Servo → bakteri vanası', 'vana_aci_ayarla', akt ? 'kritik' : guc ? 'kapali' : k.vana ? 'aktif' : 'iyi', akt ? 'Yanıt yok' : k.vana ? '90° açık' : '0° kapalı'],
+      ['USV-01 katamaran', 'Otonom rota', akt ? 'kritik' : guc ? 'kapali' : k.usv.durum === 'liman' ? 'iyi' : 'aktif', guc ? 'Komut gelmiyor' : usvYazi],
+      ['AFAD kriz merkezi', 'GPS koordinatlı bildirim', guc ? 'kritik' : k.durum === 'acil' ? 'kritik' : 'iyi', guc ? 'Bağlantı yok' : k.ilkAlarmGunu !== null ? `İletildi · ${gunF(k.ilkAlarmGunu)}. gün` : 'Hazır'],
+    ];
+  }
+
+  function bilesenCiz(k) {
+    const satirlar = bilesenler(k);
+    $('bilesenListe').innerHTML = satirlar.map(([ad, alt, s, deger]) =>
+      `<li class="${s}"><span class="nokta"></span><div><b>${ad}</b><small>${alt}</small></div><em>${deger}</em></li>`).join('');
+  }
+
+  // ------------------------------------------------------------------ Terminal ve olaylar
+  const term = $('terminal');
+  let termDurum = { k: null, id: 0, no: 0 };
+  let olaySay = -1;
+  function odakTank() { return durum.sekme === 'tek' ? tek : karsi[durum.odak]; }
+  function odakAd() { return durum.sekme === 'tek' ? MOD_AD[tek.mod] : KARSI_AD[durum.odak]; }
+  function terminalSifirla() { termDurum = { k: null, id: 0, no: 0 }; olaySay = -1; }
+
+  function terminalGuncelle() {
+    const k = odakTank();
+    if (termDurum.k !== k || termDurum.no !== k.sifirlamaNo) {
+      term.textContent = ''; termDurum = { k, id: 0, no: k.sifirlamaNo };
+    }
+    const yeni = k.log.filter((l) => l.id > termDurum.id);
+    if (!k.devreVar() && !term.childElementCount) {
+      const d = document.createElement('div'); d.className = 'bos';
+      d.textContent = 'Bu denizde Mavi Kalkan devresi yok. Ölçüm yapılmıyor, kimse uyarılmıyor.';
+      term.appendChild(d);
+    }
+    if (!yeni.length) return;
+    const altta = term.scrollTop + term.clientHeight >= term.scrollHeight - 30;
+    const parca = document.createDocumentFragment();
+    yeni.slice(-250).forEach((l) => {
+      const d = document.createElement('div'); d.className = l.tur;
+      const z = document.createElement('span'); z.className = 'z'; z.textContent = `G${l.t.toFixed(1).padStart(4, '0')}`;
+      d.appendChild(z); d.appendChild(document.createTextNode(l.satir));
+      parca.appendChild(d);
+    });
+    const bos = term.querySelector('.bos'); if (bos && k.devreVar()) bos.remove();
+    term.appendChild(parca);
+    while (term.childElementCount > 300) term.firstChild.remove();
+    termDurum.id = yeni[yeni.length - 1].id;
+    if (altta) term.scrollTop = term.scrollHeight;
+  }
+
+  function olaylarGuncelle() {
+    const k = odakTank();
+    if (k.olaylar.length === olaySay) return;
+    olaySay = k.olaylar.length;
+    const ol = $('olaylar');
+    if (!k.olaylar.length) { ol.innerHTML = `<li><time>—</time><span class="bilgi">${k.devreVar() ? 'Henüz önemli bir olay yok. Kuluçka evresi başladığında burada görünecek.' : 'Devre yok: müsilaj oluşursa bunu yalnız yüzeyde görürsünüz.'}</span></li>`; return; }
+    ol.innerHTML = k.olaylar.slice().reverse().map((o) => `<li><time>${gunF(o.t)}. gün</time><span class="${o.tur}">${o.metin}</span></li>`).join('');
+  }
+
+  // ------------------------------------------------------------------ Sonuç
+  function sonucGuncelle() {
+    const [y, c, a] = karsi;
+    const hy = y.yuzeyGunu !== null ? `Müsilaj ${gunF(y.yuzeyGunu)}. günde yüzeye çıktı. Kimse uyarılmadı; ÇO ${y.DO.toFixed(1)} mg/L'ye düştü.`
+      : y.M >= 25 ? 'Müsilaj su kolonunda askıda, yüzeye yaklaşıyor. Kimse uyarılmadı.'
+      : y.M >= 5 ? 'Müsilaj dipte kuluçkada. Yüzeyde henüz iz yok; kamerayla görülemez.'
+      : 'Henüz müsilaj yok.';
+    const hc = c.ilkAlarmGunu !== null
+      ? `${gunF(c.ilkAlarmGunu)}. günde kuluçka evresi doğrulandı ve AFAD'a bildirildi. USV-01 ${c.pompaGun.toFixed(0)} gün müdahale etti. Müsilaj indeksi en fazla ${c.maxM.toFixed(0)} oldu${c.yuzeyGunu === null ? ', yüzeye hiç çıkmadı.' : '.'}`
+      : c.trend > 0 ? `Risk ${c.trend.toFixed(1)} gündür sürüyor, 3 günlük trend doğrulanıyor.`
+      : 'Eşikler henüz birlikte aşılmadı; şamandıra ölçmeye devam ediyor.';
+    const arizaAciklama = { sensor: 'ÇO sensörü 7.2 mg/L değerinde takılı kaldığı için acil durum koşulu hiç sağlanmadı.', aktuator: 'Alarm verildi ama USV, röle ve servo yanıt vermediği için müdahale yapılamadı.', guc: 'Şamandıraya güç gitmediği için ölçüm ve bildirim yapılamadı.' }[a.ariza];
+    const ha = `${arizaAciklama} ${a.yuzeyGunu !== null ? `Müsilaj ${gunF(a.yuzeyGunu)}. günde yüzeye çıktı.` : a.M >= 5 ? `Müsilaj büyüyor (indeks ${a.M.toFixed(0)}).` : 'Müsilaj henüz oluşmadı.'}`;
+    const satirlar = [[KARSI_AD[0], hy, hukum(y).s], [KARSI_AD[1], hc, hukum(c).s], [`${KARSI_AD[2]} · ${ARIZA_AD[a.ariza]}`, ha, hukum(a).s]];
+    $('sonucListe').innerHTML = satirlar.map(([b, p, s]) => `<li class="${s}"><div><b>${b}</b><p>${p}</p></div></li>`).join('');
+    if (y.yuzeyGunu !== null && c.ilkAlarmGunu !== null) {
+      $('kpiUyari').textContent = `${Math.round(y.yuzeyGunu - c.ilkAlarmGunu)} gün önce`;
+      $('kpiUyariNot').textContent = `Mavi Kalkan ${gunF(c.ilkAlarmGunu)}. günde uyardı. Devresiz denizde müsilaj ${gunF(y.yuzeyGunu)}. günde göründü.`;
+    } else if (c.ilkAlarmGunu !== null) {
+      $('kpiUyari').textContent = `${gunF(c.ilkAlarmGunu)}. gün`;
+      $('kpiUyariNot').textContent = 'Mavi Kalkan uyardı. Devresiz denizde müsilaj henüz yüzeye çıkmadı; fark deney ilerledikçe hesaplanacak.';
+    } else {
+      $('kpiUyari').textContent = '—';
+      $('kpiUyariNot').textContent = 'Mavi Kalkan uyarısı ile devresiz denizde müsilajın yüzeye çıkışı arasındaki fark.';
+    }
+    $('sonucDurum').textContent = karsi[0].t >= SURE ? `${SURE} günlük deney tamamlandı` : 'Deney sürüyor';
+  }
+
+  // ------------------------------------------------------------------ Arayüz güncelleme
+  function uiGuncelle() {
+    const tanklar = durum.sekme === 'tek' ? [tek] : karsi;
+    const t = tanklar[0].t;
+    $('gunYazi').textContent = `Gün ${gunF(t)}`;
+    $('gunCubuk').style.width = `${clamp(t / SURE, 0, 1) * 100}%`;
+
+    if (durum.sekme === 'karsi') {
+      karsi.forEach((k, i) => {
+        const el = kartEl[i], h = hukum(k);
+        const hk = el.querySelector('[data-hukum]'); hk.className = `cip hukum ${h.s}`; hk.textContent = h.m;
+        el.querySelector('[data-m]').textContent = k.M.toFixed(0);
+        el.querySelector('[data-do]').textContent = k.DO.toFixed(1);
+        el.querySelector('[data-b]').textContent = `${sahneK[i].balikSayisi}/9`;
+        el.querySelector('[data-alt]').textContent = i === 2 ? ARIZA_AD[k.ariza] : i === 1 ? 'Şamandıra + USV' : 'Doğal süreç';
+      });
+      karsiGrafik();
+      sonucGuncelle();
+    } else {
+      const k = tek, e = evre(k.M), h = hukum(k);
+      const durumCip = !k.devreVar() ? ['', 'Ölçüm ve uyarı yok'] : k.arizaVar('guc') ? ['kritik', 'Şamandıra kapalı'] : { stabil: ['iyi', 'Ekosistem stabil'], uyari: ['uyari', 'Ötrofikasyon uyarısı'], dogrulama: ['uyari', `Trend doğrulanıyor ${k.trend.toFixed(1)}/${k.ilkAlarmGunu === null ? TREND_GUN : 1} gün`], acil: ['kritik', 'Acil durum · AFAD bildirildi'], kapali: ['', 'Kapalı'] }[k.durum];
+      $('tekUst').innerHTML = `<span class="cip duz">Gün ${gunF(k.t)}</span><span class="cip ${k.mod === 'arizali' ? 'kritik' : k.mod === 'calisiyor' ? 'aktif' : ''}">${MOD_AD[k.mod]}${k.mod === 'arizali' ? ' · ' + ARIZA_AD[k.ariza] : ''}</span><span class="cip ${durumCip[0]}">${durumCip[1]}</span>`;
+      $('tekAlt').innerHTML = `<span class="cip ${h.s}">${e.ad}</span><span class="cip duz">Müsilaj ${k.M.toFixed(0)}/100</span><span class="cip duz">Balık ${sahneTek.balikSayisi}/9</span>`;
+      const tmax = Math.max(SURE, Math.ceil(k.t / 15) * 15);
+      GOSTERGE.forEach((m, i) => {
+        const v = k[m.a]; const el = gEl[i];
+        el.v.textContent = v.toFixed(m.d);
+        const asti = m.yon > 0 ? v > m.esik : v < m.esik;
+        let not, s;
+        if (m.a === 'M') { not = e.ad; s = k.M >= YUZEY_ESIGI ? 'kritik' : k.M >= 5 ? 'uyari' : ''; }
+        else { not = `${asti ? 'Eşik aşıldı' : 'Normal'} · eşik ${m.yon > 0 ? '>' : '<'} ${m.esik}`; s = asti ? 'uyari' : ''; }
+        el.n.textContent = not; el.n.className = `gosterge-not ${s}`;
+        kivilcim(el.c, k.gecmis, m, m.a === 'M' ? RENK.salya : asti ? RENK.uyari : RENK.mavi, tmax);
+      });
+    }
+    $('bilesenOdak').textContent = odakAd();
+    $('terminalOdak').textContent = `main.py · ${odakAd()}`;
+    bilesenCiz(odakTank());
+    terminalGuncelle();
+    olaylarGuncelle();
+  }
+
+  // ------------------------------------------------------------------ Kontroller
+  function oynatGuncelle() {
+    $('oynatYazi').textContent = durum.oynuyor ? 'Durdur' : (odakTank().t >= SURE ? 'Devam ettir' : 'Başlat');
+    $('oynatIkon').setAttribute('d', durum.oynuyor ? 'M4 2h3v12H4zM9 2h3v12H9z' : 'M4 2l10 6-10 6z');
+  }
+  function sifirla(hepsi) {
+    const liste = hepsi ? [tek, ...karsi] : (durum.sekme === 'tek' ? [tek] : karsi);
+    liste.forEach((k) => k.reset(ENV));
+    if (hepsi || durum.sekme === 'tek') sahneTek.sifirla();
+    if (hepsi || durum.sekme === 'karsi') sahneK.forEach((s) => s.sifirla());
+    if (hepsi) durum.bitti = { tek: false, karsi: false }; else durum.bitti[durum.sekme] = false;
+    durum.oynuyor = true;
+    terminalSifirla(); oynatGuncelle(); uiGuncelle();
+  }
+
+  $('oynatDug').addEventListener('click', () => { durum.oynuyor = !durum.oynuyor; oynatGuncelle(); });
+  $('sifirlaDug').addEventListener('click', () => sifirla(false));
+  document.querySelectorAll('.hizlar button').forEach((b) => b.addEventListener('click', () => {
+    durum.hiz = +b.dataset.hiz;
+    document.querySelectorAll('.hizlar button').forEach((x) => x.setAttribute('aria-pressed', x === b ? 'true' : 'false'));
+  }));
+
+  function sekmeSec(ad) {
+    durum.sekme = ad;
+    $('sekmeKarsi').setAttribute('aria-selected', ad === 'karsi' ? 'true' : 'false');
+    $('sekmeTek').setAttribute('aria-selected', ad === 'tek' ? 'true' : 'false');
+    $('gorunumKarsi').hidden = ad !== 'karsi';
+    $('gorunumTek').hidden = ad !== 'tek';
+    $('modSecim').hidden = ad !== 'tek';
+    $('karsiNot').hidden = ad !== 'karsi';
+    $('devreEtiket').textContent = ad === 'tek' ? 'Tek senaryo' : 'Karşılaştırma';
+    durum.oynuyor = !durum.bitti[ad];
+    terminalSifirla(); oynatGuncelle();
+    requestAnimationFrame(() => { sahneTek.boyutla(); sahneK.forEach((s) => s.boyutla()); uiGuncelle(); });
+    try { localStorage.setItem('mk-sekme', ad); } catch (e) { /* depolama yok */ }
+  }
+  $('sekmeKarsi').addEventListener('click', () => sekmeSec('karsi'));
+  $('sekmeTek').addEventListener('click', () => sekmeSec('tek'));
+
+  document.querySelectorAll('input[name="mod"]').forEach((r) => r.addEventListener('change', () => {
+    if (!r.checked) return;
+    tek.modDegistir(r.value, $('arizaSecim').value);
+    tek.olay(r.value === 'arizali' ? `Devre arızalandı: ${ARIZA_AD[tek.ariza]}.` : r.value === 'yok' ? 'Devre denizden kaldırıldı.' : 'Devre çalışır duruma getirildi.', 'bilgi');
+    uiGuncelle();
+  }));
+  $('arizaSecim').addEventListener('change', (e) => {
+    const v = e.target.value;
+    karsi[2].modDegistir('arizali', v);
+    karsi[2].olay(`Arıza türü değişti: ${ARIZA_AD[v]}.`, 'bilgi');
+    if (tek.mod === 'arizali') { tek.modDegistir('arizali', v); tek.olay(`Arıza türü değişti: ${ARIZA_AD[v]}.`, 'bilgi'); }
+    else tek.ariza = v;
+    uiGuncelle();
+  });
+
+  function ayarYaz() {
+    $('sicaklikAyar').value = ENV.T; $('azotAyar').value = ENV.N;
+    $('sicaklikCikti').textContent = `${ENV.T.toFixed(1)} °C`;
+    $('azotCikti').textContent = `${ENV.N.toFixed(0)} mg/L`;
+  }
+  $('sicaklikAyar').addEventListener('input', (e) => { ENV.T = +e.target.value; ayarYaz(); });
+  $('azotAyar').addEventListener('input', (e) => { ENV.N = +e.target.value; ayarYaz(); });
+  document.querySelectorAll('#hazirlar button').forEach((b) => b.addEventListener('click', () => {
+    ENV.T = +b.dataset.t; ENV.N = +b.dataset.n; ayarYaz(); sifirla(true);
+  }));
+
+  // ------------------------------------------------------------------ Döngü
+  let son = performance.now(), zaman = 0, uiSure = 0;
+  function kare(simdi) {
+    const dt = Math.min(0.1, (simdi - son) / 1000); son = simdi;
+    const tanklar = durum.sekme === 'tek' ? [tek] : karsi;
+    if (durum.oynuyor) {
+      let adim = dt * GUN_SN * durum.hiz;
+      if (!durum.bitti[durum.sekme] && tanklar[0].t + adim >= SURE) {
+        adim = Math.max(0, SURE - tanklar[0].t);
+        durum.bitti[durum.sekme] = true; durum.oynuyor = false; oynatGuncelle();
+      }
+      if (adim > 0) tanklar.forEach((k) => k.ilerle(adim, ENV));
+    }
+    zaman += dt;
+    if (durum.sekme === 'tek') sahneTek.ciz(tek, dt, zaman);
+    else sahneK.forEach((s, i) => s.ciz(karsi[i], dt, zaman));
+    uiSure += dt;
+    if (uiSure > 0.12) { uiSure = 0; uiGuncelle(); }
+    requestAnimationFrame(kare);
+  }
+
+  ayarYaz();
+  sifirla(true);
+  let ilkSekme = 'karsi';
+  try { ilkSekme = localStorage.getItem('mk-sekme') === 'tek' ? 'tek' : 'karsi'; } catch (e) { /* depolama yok */ }
+  sekmeSec(ilkSekme);
+  requestAnimationFrame(kare);
+})();
+</script>
