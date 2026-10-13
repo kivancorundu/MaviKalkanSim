@@ -422,7 +422,7 @@
       <article><span class="no">01</span><span class="kas">Derin sensör hattı</span><h3>IP68 şamandıra</h3><p>Sıcaklık, azot ve çözünmüş oksijen her yarım günde bir okunur. Fosfor ve klorofil de izlenir. Kamera yalnızca yüzeyi görür, bu yüzden kuluçkadaki müsilajı kaçırır.</p></article>
       <article><span class="no">02</span><span class="kas">Wokwi ana döngüsü</span><h3>Eşik kontrolü</h3><p>Koşul main.py ile aynı: sıcaklık &gt; 22 °C, azot eşiğin üstünde ve ÇO &lt; 4 mg/L ise acil durum. Yalnız biri aşılırsa ötrofikasyon uyarısı verilir.</p></article>
       <article><span class="no">03</span><span class="kas">Doğrulama filtresi</span><h3>3 günlük trend</h3><p>Risk 3 gün kesintisiz sürerse kuluçka evresi doğrulanır. Geçici sapmalar sayaçtan düşer. Doğrulanmış bölgede yeniden tetikleme 1 gün sürer.</p></article>
-      <article><span class="no">04</span><span class="kas">Nokta atışı müdahale</span><h3>USV ve bakteri dozu</h3><p>AFAD'a GPS koordinatlı bildirim gider. USV-01 koordinata gelir, santrifüj filtre müsilajı emer, bakteri dozu azot ve fosforu tüketir.</p></article>
+      <article><span class="no">04</span><span class="kas">Nokta atışı müdahale</span><h3>USV ve bakteri dozu</h3><p>Ekibe GPS koordinatlı haber verilir. USV-01 koordinata gelir, santrifüj filtre müsilajı emer, bakteri dozu azot ve fosforu tüketir.</p></article>
     </div>
     <div class="tablo-kap">
       <table class="esleme">
@@ -651,12 +651,12 @@
         this.vana = !aktuatorBozuk;
         if (this.ilkAlarmGunu === null) {
           this.ilkAlarmGunu = this.t;
-          this.olay(`Kuluçka evresi 3 günlük trendle doğrulandı; AFAD'a GPS koordinatlı uyarı gitti (müsilaj indeksi ${this.M.toFixed(0)}).`, 'acil');
+          this.olay(`Kuluçka evresi 3 günlük trendle doğrulandı; ekibe GPS koordinatlı haber verildi (müsilaj indeksi ${this.M.toFixed(0)}).`, 'acil');
         }
         if (!this.acilAktif) {
           this.acilAktif = true;
           this.yaz('!'.repeat(70), 'acil');
-          this.yaz('🚨 [ACİL DURUM - AFAD KRİZ YÖNETİM MERKEZİNE İLETİLDİ] 🚨', 'acil');
+          this.yaz('🚨 [ACİL DURUM - EKİBE HABER VERİLDİ] 🚨', 'acil');
           this.yaz(`İSTASYON ID : ${this.istasyon.id} | DERİNLİK: ${derinlik.toFixed(1)}m | KONUM: ${this.istasyon.konum}`, 'acil');
           this.yaz('TEŞHİS      : Kuluçka Evresindeki Müsilaj (Deniz Salyası) Kümelenmesi — 3 günlük trend doğrulandı', 'acil');
           this.yaz(`ANOMALİ     : Sıcaklık: ${sicaklik.toFixed(1)}°C | Azot: ${azot.toFixed(1)}µmol/L | DO: ${oksijen.toFixed(1)}mg/L`, 'acil');
@@ -1054,7 +1054,7 @@
         gr.addColorStop(0, led + '88'); gr.addColorStop(1, led + '00');
         g.fillStyle = gr; g.beginPath(); g.arc(bx, by - 32 * s, 12 * s, 0, TAM); g.fill();
       }
-      // AFAD'a sinyal
+      // Ekibe sinyal
       if (k.durum === 'acil' && !guc) {
         g.strokeStyle = RENK.kritik; g.lineWidth = 1.4 * s;
         for (let i = 0; i < 3; i++) {
@@ -1366,7 +1366,7 @@
 
   function bilesenler(k) {
     if (!k.devreVar()) {
-      return [['Şamandıra ve sensörler', 'Kurulu değil', 'kapali', '—'], ['USV-01', 'Kurulu değil', 'kapali', '—'], ['AFAD bildirimi', 'Kurulu değil', 'kapali', '—']];
+      return [['Şamandıra ve sensörler', 'Kurulu değil', 'kapali', '—'], ['USV-01', 'Kurulu değil', 'kapali', '—'], ['Ekip bildirimi', 'Kurulu değil', 'kapali', '—']];
     }
     const guc = k.arizaVar('guc'), sens = k.arizaVar('sensor'), akt = k.arizaVar('aktuator');
     const o = k.okuma;
@@ -1387,7 +1387,7 @@
       ['Röle → santrifüj pompa', 'role_pompa', akt ? 'kritik' : guc ? 'kapali' : k.pompa ? 'aktif' : 'iyi', akt ? 'Yanıt yok' : k.pompa ? 'AÇIK' : 'Kapalı'],
       ['Servo → bakteri vanası', 'vana_aci_ayarla', akt ? 'kritik' : guc ? 'kapali' : k.vana ? 'aktif' : 'iyi', akt ? 'Yanıt yok' : k.vana ? '90° açık' : '0° kapalı'],
       ['USV-01 katamaran', 'Otonom rota', akt ? 'kritik' : guc ? 'kapali' : k.usv.durum === 'liman' ? 'iyi' : 'aktif', guc ? 'Komut gelmiyor' : usvYazi],
-      ['AFAD kriz merkezi', 'GPS koordinatlı bildirim', guc ? 'kritik' : k.durum === 'acil' ? 'kritik' : 'iyi', guc ? 'Bağlantı yok' : k.ilkAlarmGunu !== null ? `İletildi · ${gunF(k.ilkAlarmGunu)}. gün` : 'Hazır'],
+      ['Ekip', 'GPS koordinatlı haber', guc ? 'kritik' : k.durum === 'acil' ? 'kritik' : 'iyi', guc ? 'Bağlantı yok' : k.ilkAlarmGunu !== null ? `Haber verildi · ${gunF(k.ilkAlarmGunu)}. gün` : 'Hazır'],
     ];
   }
 
@@ -1449,7 +1449,7 @@
       : y.M >= 5 ? 'Müsilaj dipte kuluçkada. Yüzeyde henüz iz yok; kamerayla görülemez.'
       : 'Henüz müsilaj yok.';
     const hc = c.ilkAlarmGunu !== null
-      ? `${gunF(c.ilkAlarmGunu)}. günde kuluçka evresi doğrulandı ve AFAD'a bildirildi. USV-01 ${c.pompaGun.toFixed(0)} gün müdahale etti. Müsilaj indeksi en fazla ${c.maxM.toFixed(0)} oldu${c.yuzeyGunu === null ? ', yüzeye hiç çıkmadı.' : '.'}`
+      ? `${gunF(c.ilkAlarmGunu)}. günde kuluçka evresi doğrulandı ve ekibe haber verildi. USV-01 ${c.pompaGun.toFixed(0)} gün müdahale etti. Müsilaj indeksi en fazla ${c.maxM.toFixed(0)} oldu${c.yuzeyGunu === null ? ', yüzeye hiç çıkmadı.' : '.'}`
       : c.trend > 0 ? `Risk ${c.trend.toFixed(1)} gündür sürüyor, 3 günlük trend doğrulanıyor.`
       : 'Eşikler henüz birlikte aşılmadı; şamandıra ölçmeye devam ediyor.';
     const arizaAciklama = { sensor: 'ÇO sensörü 7.2 mg/L değerinde takılı kaldığı için acil durum koşulu hiç sağlanmadı.', aktuator: 'Alarm verildi ama USV, röle ve servo yanıt vermediği için müdahale yapılamadı.', guc: 'Şamandıraya güç gitmediği için ölçüm ve bildirim yapılamadı.' }[a.ariza];
@@ -1489,7 +1489,7 @@
       sonucGuncelle();
     } else {
       const k = tek, e = evre(k.M), h = hukum(k);
-      const durumCip = !k.devreVar() ? ['', 'Ölçüm ve uyarı yok'] : k.arizaVar('guc') ? ['kritik', 'Şamandıra kapalı'] : { stabil: ['iyi', 'Ekosistem stabil'], uyari: ['uyari', 'Ötrofikasyon uyarısı'], dogrulama: ['uyari', `Trend doğrulanıyor ${k.trend.toFixed(1)}/${k.ilkAlarmGunu === null ? TREND_GUN : 1} gün`], acil: ['kritik', 'Acil durum · AFAD bildirildi'], kapali: ['', 'Kapalı'] }[k.durum];
+      const durumCip = !k.devreVar() ? ['', 'Ölçüm ve uyarı yok'] : k.arizaVar('guc') ? ['kritik', 'Şamandıra kapalı'] : { stabil: ['iyi', 'Ekosistem stabil'], uyari: ['uyari', 'Ötrofikasyon uyarısı'], dogrulama: ['uyari', `Trend doğrulanıyor ${k.trend.toFixed(1)}/${k.ilkAlarmGunu === null ? TREND_GUN : 1} gün`], acil: ['kritik', 'Acil durum · ekibe haber verildi'], kapali: ['', 'Kapalı'] }[k.durum];
       $('tekUst').innerHTML = `<span class="cip duz">Gün ${gunF(k.t)}</span><span class="cip ${k.mod === 'arizali' ? 'kritik' : k.mod === 'calisiyor' ? 'aktif' : ''}">${MOD_AD[k.mod]}${k.mod === 'arizali' ? ' · ' + ARIZA_AD[k.ariza] : ''}</span><span class="cip ${durumCip[0]}">${durumCip[1]}</span>`;
       $('tekAlt').innerHTML = `<span class="cip ${h.s}">${e.ad}</span><span class="cip duz">Müsilaj ${k.M.toFixed(0)}/100</span><span class="cip duz">Balık ${sahneTek.balikSayisi}/9</span>`;
       const tmax = Math.max(SURE, Math.ceil(k.t / 15) * 15);
